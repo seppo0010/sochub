@@ -1,4 +1,4 @@
-# sochub-api-trello
+# sochub-trello
 
 ## Power-Up UI
 
