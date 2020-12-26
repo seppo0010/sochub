@@ -1,5 +1,7 @@
 import GoogleDocs from './GoogleDocs'
 
-export default {
+const Input = {
     GoogleDocs,
 }
+
+export default Input;
