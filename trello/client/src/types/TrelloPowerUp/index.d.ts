@@ -93,7 +93,7 @@ export namespace Trello {
     export interface PopupOptions {
       title: string;
       items: PopupOptionsItem[];
-      mouseEvent: MouseEvent;
+      mouseEvent?: MouseEvent;
     }
 
     export interface PopupSearchOptions extends PopupOptions {
@@ -114,7 +114,7 @@ export namespace Trello {
         [key: string]: any;
       };
       height?: number;
-      mouseEvent: MouseEvent;
+      mouseEvent?: MouseEvent;
     }
 
     export interface PopupDateOptions {
@@ -126,7 +126,7 @@ export namespace Trello {
       date?: Date;
       minDate?: Date;
       maxDate?: Date;
-      mouseEvent: MouseEvent;
+      mouseEvent?: MouseEvent;
     }
 
     export interface PopupConfirmOptions {
@@ -136,7 +136,7 @@ export namespace Trello {
       confirmText: string;
       onConfirm(t: PowerUp.IFrame, opts: any): PromiseLike<void>;
       confirmStyle?: 'primary' | 'danger';
-      mouseEvent: MouseEvent;
+      mouseEvent?: MouseEvent;
     }
 
     export interface PopupConfirmWithCancelOptions extends PopupConfirmOptions {
