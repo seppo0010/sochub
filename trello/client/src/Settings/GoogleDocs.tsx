@@ -1,8 +1,14 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
+
 
 const GoogleDocs = () => {
     const [user, setUser] = useState<GoogleLoginResponse | GoogleLoginResponseOffline | undefined>();
+    const t = window.TrelloPowerUp.iframe();
+    useEffect(() => {
+        const u = user as GoogleLoginResponse;
+        t.storeSecret('GoogleDocs_userToken', u && u.accessToken ? u.accessToken : '')
+    })
     return (
         <p>
             Google Docs
@@ -15,6 +21,7 @@ const GoogleDocs = () => {
                 buttonText="Login"
                 onSuccess={setUser}
                 onFailure={setUser}
+                isSignedIn={true}
                 cookiePolicy={'single_host_origin'}
                 />}
             {!!user && <GoogleLogout
