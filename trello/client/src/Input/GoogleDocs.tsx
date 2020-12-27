@@ -74,13 +74,23 @@ export const Page = () => {
                 .setOAuthToken(oauthToken)
                 .addView(new google.picker.View(google.picker.ViewId.DOCUMENTS))
                 .addView(new google.picker.DocsUploadView())
-                .setCallback((data: any) => {
+                .setCallback(async (data:
+                        { action: string, docs?: [{id: string}] }
+                    ) => {
                     if (data.action === google.picker.Action.PICKED || data.action === google.picker.Action.CANCEL) {
                         t.closeModal()
                     }
-                    if (data.action === google.picker.Action.PICKED) {
-                        var fileId = data.docs[0].id;
-                        alert(fileId)
+                    if (data.action === google.picker.Action.PICKED && data.docs) {
+                        const res = await fetch('/trello/input-googledocs', {
+                            method: 'POST',
+                            headers: {'content-type': 'application/json'},
+                            body: JSON.stringify({
+                                fileId: data.docs[0].id,
+                                oauthToken: oauthToken,
+                            }),
+                        });
+                        const result = await res.json();
+                        alert(result)
                     }
                 })
                 .build()
