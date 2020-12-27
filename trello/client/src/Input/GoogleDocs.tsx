@@ -69,22 +69,22 @@ export const Page = () => {
                 setNeedsLogin(true)
                 return
             }
-            var view = new google.picker.View(google.picker.ViewId.DOCS);
-            view.setMimeTypes("image/png,image/jpeg,image/jpg");
-            var picker = new google.picker.PickerBuilder()
+            new google.picker.PickerBuilder()
                 .enableFeature(google.picker.Feature.NAV_HIDDEN)
                 .setOAuthToken(oauthToken)
-                .addView(view)
+                .addView(new google.picker.View(google.picker.ViewId.DOCUMENTS))
                 .addView(new google.picker.DocsUploadView())
                 .setCallback((data: any) => {
+                    if (data.action === google.picker.Action.PICKED || data.action === google.picker.Action.CANCEL) {
+                        t.closeModal()
+                    }
                     if (data.action === google.picker.Action.PICKED) {
                         var fileId = data.docs[0].id;
                         alert(fileId)
-                        t.closeModal()
                     }
                 })
-                .build();
-            picker.setVisible(true);
+                .build()
+                .setVisible(true);;
         },
     }))
     return (
