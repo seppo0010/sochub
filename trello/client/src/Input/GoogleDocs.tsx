@@ -51,7 +51,8 @@ export const Button = {
 
 export const Page = () => {
     const [loading, setLoading] = useState(true)
-    const [needsLogin, setNeedsLogin] = useState(() => gapi.load('picker', {
+    const [needsLogin, setNeedsLogin] = useState(false)
+    useState(() => gapi.load('picker', {
         callback: async () => {
             setLoading(false)
             const t = window.TrelloPowerUp.iframe();
@@ -68,7 +69,7 @@ export const Page = () => {
                 .addView(view)
                 .addView(new google.picker.DocsUploadView())
                 .setCallback((data: any) => {
-                    if (data.action == google.picker.Action.PICKED) {
+                    if (data.action === google.picker.Action.PICKED) {
                         var fileId = data.docs[0].id;
                         alert(fileId)
                         t.closeModal()
