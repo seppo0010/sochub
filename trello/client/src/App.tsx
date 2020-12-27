@@ -6,7 +6,7 @@ import {
 
 import { Trello } from './types/TrelloPowerUp';
 import Input from './Input';
-import Settings from './Settings';
+import Settings from './Settings/index';
 
 function App() {
   return (
