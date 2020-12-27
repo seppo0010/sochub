@@ -1,5 +1,5 @@
 import React from "react";
-import GoogleDocs from './GoogleDocs'
+import { Settings as GoogleDocs } from './Input/GoogleDocs'
 
 const Settings = () => {
     return (

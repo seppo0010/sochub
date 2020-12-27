@@ -5,13 +5,16 @@ import {
 } from "react-router-dom";
 
 import { Trello } from './types/TrelloPowerUp';
-import Input from './Input';
-import Settings from './Settings/index';
+import { Page as GoogleDocsPage, Button as GoogleDocsButton } from './Input/GoogleDocs';
+import Settings from './Settings';
 
 function App() {
   return (
     <div className="App">
       <Router>
+        <Route path="/trello/input-googledocs" exact>
+          <GoogleDocsPage />
+        </Route>
         <Route path="/trello/settings" exact>
           <Settings />
         </Route>
@@ -25,7 +28,7 @@ function App() {
 
 window.TrelloPowerUp.initialize({
     'card-buttons': function(t: Trello.PowerUp.IFrame) {
-        return Promise.resolve([Input.GoogleDocs])
+        return Promise.resolve([GoogleDocsButton])
     },
     'show-settings': function(t: Trello.PowerUp.IFrame) {
         return t.modal({

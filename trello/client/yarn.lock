@@ -1737,6 +1737,11 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
+"@types/google.picker@^0.0.34":
+  "integrity" "sha512-boAuaICKHnPlkuRYCFhCKSLGTKqk3zs37YiK0u1T2EBfLhsuomFwAFbBxwl0E8yAGWR1V1FsJIlCDAExfC1NJA=="
+  "resolved" "https://registry.npmjs.org/@types/google.picker/-/google.picker-0.0.34.tgz"
+  "version" "0.0.34"
+
 "@types/graceful-fs@^4.1.2":
   "integrity" "sha512-mWA/4zFQhfvOA8zWkXobwJvBD7vzcxgrOQ0J5CH1votGqdq9m7+FwtGaqyCZqC3NyyBkc9z4m+iry4LlqcMWJg=="
   "resolved" "https://registry.yarnpkg.com/@types/graceful-fs/-/graceful-fs-4.1.4.tgz"
@@ -7255,6 +7260,11 @@
     "pify" "^2.0.0"
     "strip-bom" "^3.0.0"
 
+"load-script@^1.0.0":
+  "integrity" "sha1-BJGTngvuVkPuSUp+PaPSuscMbKQ="
+  "resolved" "https://registry.npmjs.org/load-script/-/load-script-1.0.0.tgz"
+  "version" "1.0.0"
+
 "loader-runner@^2.4.0":
   "integrity" "sha512-Jsmr89RcXGIwivFY21FcRrisYZfvLMTWx5kOLc+JTxtpBOG6xML0vzbc6SEQG2FO9/4Fc3wW4LVcB5DmGflaRw=="
   "resolved" "https://registry.yarnpkg.com/loader-runner/-/loader-runner-2.4.0.tgz"
@@ -9487,6 +9497,13 @@
   dependencies:
     "@types/react" "*"
     "prop-types" "^15.6.0"
+
+"react-google-picker@^0.1.0":
+  "integrity" "sha512-0y3TtinsdNwEx77Upsmh7Q4bXuBt/d/KntQDNxLOIf2v77UQQi0FBYAtAkjrkP28IOX7gfcXhdY5XXZRGHSODw=="
+  "resolved" "https://registry.npmjs.org/react-google-picker/-/react-google-picker-0.1.0.tgz"
+  "version" "0.1.0"
+  dependencies:
+    "load-script" "^1.0.0"
 
 "react-is@^16.6.0", "react-is@^16.7.0", "react-is@^16.8.1":
   "integrity" "sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ=="
