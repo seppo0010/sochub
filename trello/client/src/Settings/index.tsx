@@ -6,7 +6,6 @@ const Settings = () => {
         <div id="content" style={{padding: 20}}>
             <h1>Settings</h1>
             <GoogleDocs />
-            <button id="save" className="mod-primary">Save</button>
         </div>
     )
 }
