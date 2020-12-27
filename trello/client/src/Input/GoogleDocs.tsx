@@ -49,14 +49,22 @@ export const Button = {
     },
 }
 
+const loggedInToken = async (t: Trello.PowerUp.IFrame) => {
+    return await t.loadSecret('GoogleDocs_userToken')
+}
+
+export const isLoggedIn = async (t: Trello.PowerUp.IFrame) => {
+    return !!(await loggedInToken(t));
+}
+
 export const Page = () => {
+    const t = window.TrelloPowerUp.iframe();
     const [loading, setLoading] = useState(true)
     const [needsLogin, setNeedsLogin] = useState(false)
     useState(() => gapi.load('picker', {
         callback: async () => {
             setLoading(false)
-            const t = window.TrelloPowerUp.iframe();
-            const oauthToken = await t.loadSecret('GoogleDocs_userToken')
+            const oauthToken = await loggedInToken(t)
             if (!oauthToken) {
                 setNeedsLogin(true)
                 return

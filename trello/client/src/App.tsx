@@ -5,7 +5,11 @@ import {
 } from "react-router-dom";
 
 import { Trello } from './types/TrelloPowerUp';
-import { Page as GoogleDocsPage, Button as GoogleDocsButton } from './Input/GoogleDocs';
+import {
+    Page as GoogleDocsPage,
+    Button as GoogleDocsButton,
+    isLoggedIn as googleDocsIsLoggedIn,
+} from './Input/GoogleDocs';
 import Settings from './Settings';
 
 function App() {
@@ -27,8 +31,13 @@ function App() {
 }
 
 window.TrelloPowerUp.initialize({
-    'card-buttons': function(t: Trello.PowerUp.IFrame) {
-        return Promise.resolve([GoogleDocsButton])
+    'card-buttons': async (t: Trello.PowerUp.IFrame) => {
+        return (await Promise.all([
+            googleDocsIsLoggedIn(t).then((x) => { return {
+                shouldDisplay: x,
+                button: GoogleDocsButton
+            }}),
+        ])).filter((x) => x.shouldDisplay).map((x) => x.button)
     },
     'show-settings': function(t: Trello.PowerUp.IFrame) {
         return t.modal({
