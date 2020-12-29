@@ -1,5 +1,85 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Twitter.css'
+
+declare global {
+    interface Window {
+        callback: Function;
+    }
+}
+
+declare interface User {
+    userId: string;
+    userName: string;
+    userToken: string;
+    userTokenSecret: string;
+}
+
+const saveUser = async (user: User) => {
+    const users = await listUsers()
+    users[user.userId] = user
+    const t = window.TrelloPowerUp.iframe();
+    await t.storeSecret('Twitter_users', JSON.stringify(users))
+    return users
+}
+
+const removeUser = async (user: User) => {
+    const users = await listUsers()
+    delete users[user.userId]
+    const t = window.TrelloPowerUp.iframe();
+    await t.storeSecret('Twitter_users', JSON.stringify(users))
+    return users
+}
+
+const listUsers = async () => {
+    const t = window.TrelloPowerUp.iframe();
+    const users = JSON.parse((await t.loadSecret('Twitter_users')) || '{}')
+    return users
+}
+
+export const Settings = () => {
+    const [users, setUsers] = useState([]);
+    useState(async () => setUsers(await listUsers()))
+    return (<>
+        {Object.values(users).map((u: User) => (
+            <p key={u.userId}>Twitter {u.userName}<button onClick={async () => {
+                setUsers(await removeUser(u))
+            }}>Remove account</button></p>
+        ))}
+        <p>
+            Twitter
+            &nbsp;
+            <button onClick={async () => {
+                const req = await fetch('/trello/output-twitter/add-account');
+                const {url, tokenSecret} = await req.json();
+                const w = 600;
+                const h = 600;
+                const y = window.outerHeight / 2 + window.screenY - (h / 2);
+                const x = window.outerWidth / 2 + window.screenX - (w / 2);
+                const myWindow = window.open(url, `toolbar=no, ` +
+                        `location=no, directories=no, status=no, menubar=no,` +
+                        ` scrollbars=no, resizable=yes, copyhistory=no,` +
+                        ` width=${w}, height=${h}, top=${y}, left=${x}`);
+                window.callback = async (oauthToken: string, oauthVerifier: string) => {
+                    const req = await fetch('/trello/output-twitter/add-account-ready', {
+                        method: 'POST',
+                        headers: {'content-type': 'application/json'},
+                        body: JSON.stringify({
+                            oauthToken,
+                            oauthVerifier,
+                            tokenSecret: tokenSecret,
+                        }),
+                    })
+                    const user = await req.json()
+                    setUsers(await saveUser(user))
+                    if (myWindow) {
+                        myWindow.close()
+                    }
+                }
+            }}>Add account</button>
+        </p>
+        </>
+    )
+}
 
 export const Preview = ({code}: { code: string }) => {
     const tweets = code.split(/\n\s*\*{3,}\s*\n/g).map((text) => {
@@ -24,12 +104,12 @@ export const Preview = ({code}: { code: string }) => {
         <ul className="tweets">
             {tweets.map((t, i) => (
                 <li key={i}>
-                    <img src="/twitter-default-figure.png" />
+                    <img src="/twitter-default-figure.png" alt="" />
                     <div className="info">
                         <strong>Nombre <span>@arroba</span></strong>
                         <p>{t.text.trim()}</p>
                         {t.attachments && (<ul className={'attachments attachments' + t.attachments.length}>
-                            {t.attachments.map((a, i) => <li key={i}><img src={a} /></li>)}
+                            {t.attachments.map((a, i) => <li key={i}><img src={a} alt="" /></li>)}
                         </ul>)}
                         <div className="actions">
                             <a href="#"><img src="/comments.svg" alt="Comments" /> 3 </a>
@@ -42,7 +122,3 @@ export const Preview = ({code}: { code: string }) => {
         </ul>
     </section>
 }
-/*
-    const [preview, setPreview] = useState('')
-    const t = window.TrelloPowerUp.iframe();
-    */

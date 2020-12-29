@@ -1,4 +1,5 @@
-import { Trello } from '../types/TrelloPowerUp'; import React, {useState, useEffect} from 'react';
+import { Trello } from '../types/TrelloPowerUp';
+import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 
 const saveSecret = (user: any) => {

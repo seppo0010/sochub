@@ -14,8 +14,11 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-http-proxy": "^1.6.2",
     "googleapis": "^39.2.0",
+    "login-with-twitter": "^1.2.4",
     "sqlite3": "^5.0.0",
-    "trello-node-api": "^0.0.9"
+    "trello-node-api": "^0.0.9",
+    "twitter": "^1.7.1"
   }
 }
