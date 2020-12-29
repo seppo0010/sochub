@@ -1,5 +1,7 @@
 const sqlite3 = require('sqlite3');
 const TrelloNodeAPI = require('trello-node-api')
+const TrelloResource = require('trello-node-api/lib/TrelloResource'); // ugly
+const trelloMethod = TrelloResource.method;
 
 const db = new sqlite3.Database('./trello.db');
 
@@ -69,15 +71,18 @@ module.exports = function trello(app) {
             "errorCode": "CONFIGURATION_REQUIRED"
         })
     })
-    app.post('/trello/input-canva/publish/resources/find', async (request, response) => {
-        const host = request.header('host')
+
+    const getUserToken = async (user) => {
         const stmt = db.prepare("SELECT token FROM users_token WHERE user = ? LIMIT 1");
-        const {token} = await new Promise((resolve, reject) => stmt.get(request.body.user, (err, row) => {
+        const {token} = await new Promise((resolve, reject) => stmt.get(user, (err, row) => {
             if (err) reject(err)
             else resolve(row)
         }));
         stmt.finalize();
-
+        return token
+    }
+    app.post('/trello/input-canva/publish/resources/find', async (request, response) => {
+        const token = await getUserToken(request.body.user)
         const Trello = new TrelloNodeAPI();
         Trello.setApiKey(process.env.TRELLO_API_KEY);
         Trello.setOauthToken(token);
@@ -125,8 +130,43 @@ module.exports = function trello(app) {
             return
         }
     });
+    app.post('/trello/input-canva/publish/resources/get', async (request, response) => {
+        const token = await getUserToken(request.body.user)
+        const Trello = new TrelloNodeAPI();
+        Trello.setApiKey(process.env.TRELLO_API_KEY);
+        Trello.setOauthToken(token);
+        const path = JSON.parse(request.body.id)
+        if (path.length !== 2) return response.json({'type': 'error'})
+        const {name} = await Trello.card.search(path[1])
+        if (!name) return response.json({'type': 'error'})
+        response.json({
+            "resource": {
+                "isOwner": true,
+                "readOnly": false,
+                "id": request.body.id,
+                "name": name,
+                "type": "CONTAINER"
+            },
+            "type": "SUCCESS"
+        })
+    });
     app.post('/trello/input-canva/publish/resources/upload', async (request, response) => {
-      console.log(request.body)
-      response.end()
+        const token = await getUserToken(request.body.user)
+        const path = JSON.parse(request.body.parent)
+        const Trello = new TrelloNodeAPI();
+        Trello.setApiKey(process.env.TRELLO_API_KEY);
+        Trello.setOauthToken(token);
+        request.body.assets.forEach((a) => {
+            trelloMethod({
+                method: 'POST',
+                path: '/{idCard}/attachments',
+                urlParams: [ 'idCard' ]
+            }).call(Trello.card, path[1], {
+                name: a.name,
+                mimeType: 'image/' + a.type.toLowerCase(),
+                url: a.url,
+            })
+        })
+        response.json({"type": "SUCCESS"})
     });
 }
