@@ -40,7 +40,7 @@ export const Settings = () => {
 
 export const Button = {
     icon: '',
-    text: 'Import from Google Docs',
+    text: 'Connect Google Doc',
     callback: (t: Trello.PowerUp.IFrame) => {
         return t.modal({
             url: '/trello/input-googledocs',
@@ -55,6 +55,20 @@ const loggedInToken = async (t: Trello.PowerUp.IFrame) => {
 
 export const isLoggedIn = async (t: Trello.PowerUp.IFrame) => {
     return !!(await loggedInToken(t));
+}
+
+export const buttonShouldDisplay = async (t: Trello.PowerUp.IFrame) => {
+    const [loggedIn, hasAttachment] = await Promise.all([
+        isLoggedIn(t),
+        (async () => {
+            const {attachments} = await t.card('attachments')
+            const prefix = process.env.REACT_APP_DOC_PREFIX || '/'
+            return attachments.some(function (attachment) {
+                return attachment.url.indexOf(prefix) === 0;
+            })
+        })(),
+    ])
+    return loggedIn && !hasAttachment
 }
 
 export const Page = () => {

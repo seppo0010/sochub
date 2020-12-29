@@ -8,7 +8,7 @@ import { Trello } from './types/TrelloPowerUp';
 import {
     Page as GoogleDocsPage,
     Button as GoogleDocsButton,
-    isLoggedIn as googleDocsIsLoggedIn,
+    buttonShouldDisplay as googleDocsButtonShouldDisplay,
     AttachmentSection as GoogleDocsAttachmentSection,
     AttachmentPreview as GoogleDocsAttachmentPreview,
 } from './Input/GoogleDocs';
@@ -43,7 +43,7 @@ const Connector = () => {
             },
             'card-buttons': async (t: Trello.PowerUp.IFrame) => {
                 return (await Promise.all([
-                    googleDocsIsLoggedIn(t).then((x) => { return {
+                    googleDocsButtonShouldDisplay(t).then((x) => { return {
                         shouldDisplay: x,
                         button: GoogleDocsButton
                     }}),
