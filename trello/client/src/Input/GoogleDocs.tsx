@@ -152,9 +152,9 @@ export const AttachmentPreview = () => {
     })
    setTimeout(() => {
         const imgs = document.images;
-        t.sizeTo(document.body);
+        t.sizeTo(document.body).catch(() => {});
         Array.prototype.slice.call(imgs).forEach((img) => {
-            img.addEventListener('load', () => t.sizeTo(document.body), false );
+            img.addEventListener('load', () => t.sizeTo(document.body).catch(() => {}), false );
         });
     })
     return <ReactMarkdown>{preview}</ReactMarkdown>

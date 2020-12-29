@@ -283,7 +283,7 @@ export namespace Trello {
       hideBoardBar(): PromiseLike<void>;
       closeBoardBar(): PromiseLike<void>;
       closeModal(): PromiseLike<void>;
-      sizeTo(arg: string | number | Element): PromiseLike<void>;
+      sizeTo(arg: string | number | Element): Promise<void>;
       card(...fields: ['all'] | CardFields[]): PromiseLike<Card>;
       list(...fields: ['all'] | ListFields[]): PromiseLike<List>;
       attach(data: {
