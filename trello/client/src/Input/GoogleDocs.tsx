@@ -1,6 +1,4 @@
-import { Trello } from '../types/TrelloPowerUp';
-import React, {useState, useEffect} from 'react';
-import ReactMarkdown from 'react-markdown'
+import { Trello } from '../types/TrelloPowerUp'; import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 
 export const Settings = () => {
@@ -137,10 +135,9 @@ export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
     } })
 }
 
-export const AttachmentPreview = () => {
-    const [preview, setPreview] = useState('')
+export const getHTML = async (fileId: string): Promise<string | null> => {
     const t = window.TrelloPowerUp.iframe();
-    useState(() => {
+    return new Promise((resolve, reject) => {
         gapi.load('client:auth2', async () => {
             const oauthToken = await loggedInToken(t)
             gapi.client.init({
@@ -151,25 +148,41 @@ export const AttachmentPreview = () => {
             gapi.client.setToken({access_token: oauthToken})
             gapi.client.load('drive', 'v2', async () => {
                 const res = await gapi.client.drive.files.export({
-                    fileId: t.arg('fileId', ''),
+                    fileId,
                     mimeType: "text/html",
                 })
-                const el = document.createElement('div')
-                el.innerHTML = res.body
-                const imgs = el.getElementsByTagName('img');
-                for (let i = 0; i < imgs.length; i++) imgs[i].replaceWith('![](' + (imgs[i] as HTMLImageElement).src + ')')
-                const ps = el.getElementsByTagName('p');
-                for (let i = 0; i < ps.length; i++) ps[i].textContent += '\n'
-                setPreview(el.innerText)
+                resolve(res.body)
             })
         });
     })
-   setTimeout(() => {
+}
+
+export const getText = async (fileId: string): Promise<string | null> => {
+    const html = await getHTML(fileId)
+    if (html === null) {
+        return null
+    }
+    const el = document.createElement('div')
+    el.innerHTML = html;
+    const imgs = el.getElementsByTagName('img');
+    for (let i = 0; i < imgs.length; i++) imgs[i].replaceWith('![](' + (imgs[i] as HTMLImageElement).src + ')')
+    const ps = el.getElementsByTagName('p');
+    for (let i = 0; i < ps.length; i++) ps[i].textContent += '\n'
+    return el.innerText
+}
+
+export const AttachmentPreview = () => {
+    const [preview, setPreview] = useState('')
+    const t = window.TrelloPowerUp.iframe();
+    useState(async () => {
+        setPreview(await getHTML(t.arg('fileId', '')) || '')
+    })
+    setTimeout(() => {
         const imgs = document.images;
         t.sizeTo(document.body).catch(() => {});
         Array.prototype.slice.call(imgs).forEach((img) => {
             img.addEventListener('load', () => t.sizeTo(document.body).catch(() => {}), false );
         });
     })
-    return <ReactMarkdown>{preview}</ReactMarkdown>
+    return <div dangerouslySetInnerHTML={{ __html: preview }}></div>
 }

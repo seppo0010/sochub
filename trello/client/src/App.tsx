@@ -12,6 +12,7 @@ import {
     AttachmentSection as GoogleDocsAttachmentSection,
     AttachmentPreview as GoogleDocsAttachmentPreview,
 } from './Input/GoogleDocs';
+import Preview from './Preview';
 import Settings from './Settings';
 
 function App() {
@@ -23,6 +24,9 @@ function App() {
         </Route>
         <Route path="/trello/input-googledocs/preview" exact>
           <GoogleDocsAttachmentPreview />
+        </Route>
+        <Route path="/trello/output/preview" exact>
+          <Preview />
         </Route>
         <Route path="/trello/settings" exact>
           <Settings />
@@ -41,6 +45,17 @@ const Connector = () => {
             'attachment-sections': async (t, options) => {
                 return (await Promise.all([GoogleDocsAttachmentSection].map((x) => x(t, options)))).flat()
             },
+            'card-back-section': async (t) => {
+                return {
+                    icon: '',
+                    title: 'Preview',
+                    content: {
+                        type: 'iframe',
+                        url: t.signUrl(process.env.REACT_APP_BASE_URL + '/trello/output/preview'),
+                        height: 230,
+                    }
+                };
+            },
             'card-buttons': async (t: Trello.PowerUp.IFrame) => {
                 return (await Promise.all([
                     googleDocsButtonShouldDisplay(t).then((x) => { return {
@@ -54,7 +69,7 @@ const Connector = () => {
                     title: 'Settings',
                     url: './settings',
                 });
-            }
+            },
         })
     })
     return <></>
