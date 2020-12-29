@@ -3,6 +3,7 @@ import {
   BrowserRouter as Router,
   Route,
 } from "react-router-dom";
+import { GoogleLogin } from 'react-google-login';
 
 import { Trello } from './types/TrelloPowerUp';
 import {
@@ -11,6 +12,7 @@ import {
     buttonShouldDisplay as googleDocsButtonShouldDisplay,
     AttachmentSection as GoogleDocsAttachmentSection,
     AttachmentPreview as GoogleDocsAttachmentPreview,
+    LoginRefresh as GoogleDocsLoginRefresh,
 } from './Input/GoogleDocs';
 import Preview from './Preview';
 import Settings from './Settings';
@@ -18,6 +20,7 @@ import Settings from './Settings';
 function App() {
   return (
     <div className="App">
+      <GoogleDocsLoginRefresh />
       <Router>
         <Route path="/trello/input-googledocs" exact>
           <GoogleDocsPage />

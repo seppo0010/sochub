@@ -1,13 +1,26 @@
 import { Trello } from '../types/TrelloPowerUp'; import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 
+const saveSecret = (user: any) => {
+    const t = window.TrelloPowerUp.iframe();
+    const u = user as GoogleLoginResponse;
+    try {
+        t.storeSecret('GoogleDocs_userToken', u && u.accessToken ? u.accessToken : '')
+    } catch (e) {}
+}
+
+export const LoginRefresh = () => {
+    return <GoogleLogin
+        clientId={process.env.REACT_APP_GOOGLE_DOCS_CLIENT_ID || ''}
+        render={() => <></>}
+        onSuccess={saveSecret}
+        isSignedIn={true}
+        />
+}
+
 export const Settings = () => {
     const [user, setUser] = useState<GoogleLoginResponse | GoogleLoginResponseOffline | undefined>();
-    const t = window.TrelloPowerUp.iframe();
-    useEffect(() => {
-        const u = user as GoogleLoginResponse;
-        t.storeSecret('GoogleDocs_userToken', u && u.accessToken ? u.accessToken : '')
-    })
+    useEffect(() => saveSecret(user))
     return (
         <p>
             Google Docs
