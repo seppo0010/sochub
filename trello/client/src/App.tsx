@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from 'react';
 import {
   BrowserRouter as Router,
   Route,
@@ -28,32 +28,36 @@ function App() {
           <Settings />
         </Route>
         <Route path="/trello" exact>
-          <h1>Hello world</h1>
+          <Connector />
         </Route>
       </Router>
     </div>
   );
 }
 
-window.TrelloPowerUp.initialize({
-    'attachment-sections': async (t, options) => {
-        const x = (await Promise.all([GoogleDocsAttachmentSection].map((x) => x(t, options)))).flat()
-        console.log(x); return x;
-    },
-    'card-buttons': async (t: Trello.PowerUp.IFrame) => {
-        return (await Promise.all([
-            googleDocsIsLoggedIn(t).then((x) => { return {
-                shouldDisplay: x,
-                button: GoogleDocsButton
-            }}),
-        ])).filter((x) => x.shouldDisplay).map((x) => x.button)
-    },
-    'show-settings': function(t: Trello.PowerUp.IFrame) {
-        return t.modal({
-            title: 'Settings',
-            url: './settings',
-        });
-    }
-})
+const Connector = () => {
+    useState(() => {
+        window.TrelloPowerUp.initialize({
+            'attachment-sections': async (t, options) => {
+                return (await Promise.all([GoogleDocsAttachmentSection].map((x) => x(t, options)))).flat()
+            },
+            'card-buttons': async (t: Trello.PowerUp.IFrame) => {
+                return (await Promise.all([
+                    googleDocsIsLoggedIn(t).then((x) => { return {
+                        shouldDisplay: x,
+                        button: GoogleDocsButton
+                    }}),
+                ])).filter((x) => x.shouldDisplay).map((x) => x.button)
+            },
+            'show-settings': function(t: Trello.PowerUp.IFrame) {
+                return t.modal({
+                    title: 'Settings',
+                    url: './settings',
+                });
+            }
+        })
+    })
+    return <></>
+}
 
 export default App;
