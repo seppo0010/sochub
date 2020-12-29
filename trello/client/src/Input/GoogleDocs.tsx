@@ -165,7 +165,7 @@ export const getText = async (fileId: string): Promise<string | null> => {
     const el = document.createElement('div')
     el.innerHTML = html;
     const imgs = el.getElementsByTagName('img');
-    for (let i = 0; i < imgs.length; i++) imgs[i].replaceWith('![](' + (imgs[i] as HTMLImageElement).src + ')')
+    while (imgs.length) imgs[0].replaceWith('![](' + (imgs[0] as HTMLImageElement).src + ')')
     const ps = el.getElementsByTagName('p');
     for (let i = 0; i < ps.length; i++) ps[i].textContent += '\n'
     return el.innerText

@@ -8,7 +8,7 @@ export const Preview = ({code}: { code: string }) => {
           const m = text.match(/!\[(.*?)\]\((.*?)\)/)
           if (!m) break;
           attachments.push(m[2])
-          text = text.replace(/!\[.*?\]\(.*?\)/, '')
+          text = text.replace(`![${m[1]}](${m[2]})`, '')
         }
         return {text, attachments}
     })
@@ -22,12 +22,15 @@ export const Preview = ({code}: { code: string }) => {
     })
     return <section className="timeline">
         <ul className="tweets">
-            {tweets.map((t) => (
-                <li>
+            {tweets.map((t, i) => (
+                <li key={i}>
                     <img src="/twitter-default-figure.png" />
                     <div className="info">
                         <strong>Nombre <span>@arroba</span></strong>
                         <p>{t.text.trim()}</p>
+                        {t.attachments && (<ul className={'attachments attachments' + t.attachments.length}>
+                            {t.attachments.map((a, i) => <li key={i}><img src={a} /></li>)}
+                        </ul>)}
                         <div className="actions">
                             <a href="#"><img src="/comments.svg" alt="Comments" /> 3 </a>
                             <a href="#"><img src="/retweet.svg" alt="Retweet" /> 4 </a>
