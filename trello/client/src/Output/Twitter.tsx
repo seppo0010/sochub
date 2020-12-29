@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { Trello } from '../types/TrelloPowerUp';
 import './Twitter.css'
+import { getCode } from '../Input'
 
 declare global {
     interface Window {
@@ -15,29 +17,70 @@ declare interface User {
 }
 
 const saveUser = async (user: User) => {
-    const users = await listUsers()
-    users[user.userId] = user
     const t = window.TrelloPowerUp.iframe();
+    const users = await listUsers(t)
+    users[user.userId] = user
     await t.storeSecret('Twitter_users', JSON.stringify(users))
     return users
 }
 
 const removeUser = async (user: User) => {
-    const users = await listUsers()
-    delete users[user.userId]
     const t = window.TrelloPowerUp.iframe();
+    const users = await listUsers(t)
+    delete users[user.userId]
     await t.storeSecret('Twitter_users', JSON.stringify(users))
     return users
 }
 
-const listUsers = async () => {
-    const t = window.TrelloPowerUp.iframe();
+const listUsers = async (t?: Trello.PowerUp.IFrame): Promise<{[id: string]: User}> => {
+    t = t || window.TrelloPowerUp.iframe();
     const users = JSON.parse((await t.loadSecret('Twitter_users')) || '{}')
     return users
 }
 
+const getTweetsFromCode = (code: string) => {
+    return code.split(/\n\s*\*{3,}\s*\n/g).map((text) => {
+        const attachments: string[] = []
+        while (true) {
+          const m = text.match(/!\[(.*?)\]\((.*?)\)/)
+          if (!m) break;
+          attachments.push(m[2])
+          text = text.replace(`![${m[1]}](${m[2]})`, '')
+        }
+        return {text, attachments}
+    })
+}
+
+export const tweetAction = {
+    text: 'Tweet',
+    callback: async (t: Trello.PowerUp.IFrame) => {
+        return t.popup({
+            title: 'Tweet!',
+            items: Object.values(await listUsers(t)).map((u) => {
+                return {
+                    text: u.userName,
+                    callback: async () => {
+                        const code = await getCode(t)
+                        const tweets = getTweetsFromCode(code)
+                        await fetch('/trello/output-twitter/twitter', {
+                            method: 'POST',
+                            headers: {
+                                'content-type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                from: u,
+                                tweets,
+                            }),
+                        })
+                    },
+                }
+            })
+        })
+    },
+}
+
 export const Settings = () => {
-    const [users, setUsers] = useState([]);
+    const [users, setUsers] = useState<{[id: string]: User}>({});
     useState(async () => setUsers(await listUsers()))
     return (<>
         {Object.values(users).map((u: User) => (
@@ -82,16 +125,7 @@ export const Settings = () => {
 }
 
 export const Preview = ({code}: { code: string }) => {
-    const tweets = code.split(/\n\s*\*{3,}\s*\n/g).map((text) => {
-        const attachments: string[] = []
-        while (true) {
-          const m = text.match(/!\[(.*?)\]\((.*?)\)/)
-          if (!m) break;
-          attachments.push(m[2])
-          text = text.replace(`![${m[1]}](${m[2]})`, '')
-        }
-        return {text, attachments}
-    })
+    const tweets = getTweetsFromCode(code)
     setTimeout(() => {
         const t = window.TrelloPowerUp.iframe();
         const imgs = document.images;

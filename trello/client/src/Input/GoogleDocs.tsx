@@ -61,7 +61,8 @@ export const Button = {
     },
 }
 
-const loggedInToken = async (t: Trello.PowerUp.IFrame) => {
+const loggedInToken = async (t?: Trello.PowerUp.IFrame) => {
+    t = t || window.TrelloPowerUp.iframe();
     return await t.loadSecret('GoogleDocs_userToken')
 }
 
@@ -149,8 +150,8 @@ export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
     } })
 }
 
-export const getHTML = async (fileId: string): Promise<string | null> => {
-    const t = window.TrelloPowerUp.iframe();
+export const getHTML = async (fileId: string, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
+    t = t || window.TrelloPowerUp.iframe();
     return new Promise((resolve, reject) => {
         gapi.load('client:auth2', async () => {
             const oauthToken = await loggedInToken(t)
@@ -171,8 +172,8 @@ export const getHTML = async (fileId: string): Promise<string | null> => {
     })
 }
 
-export const getText = async (fileId: string): Promise<string | null> => {
-    const html = await getHTML(fileId)
+export const getText = async (fileId: string, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
+    const html = await getHTML(fileId, t)
     if (html === null) {
         return null
     }

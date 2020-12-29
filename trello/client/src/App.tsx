@@ -3,7 +3,6 @@ import {
   BrowserRouter as Router,
   Route,
 } from "react-router-dom";
-import { GoogleLogin } from 'react-google-login';
 
 import { Trello } from './types/TrelloPowerUp';
 import {
@@ -14,24 +13,28 @@ import {
     AttachmentPreview as GoogleDocsAttachmentPreview,
     LoginRefresh as GoogleDocsLoginRefresh,
 } from './Input/GoogleDocs';
+import { tweetAction } from './Output/Twitter'
 import Preview from './Preview';
 import Settings from './Settings';
 
 function App() {
   return (
     <div className="App">
-      <GoogleDocsLoginRefresh />
       <Router>
         <Route path="/trello/input-googledocs" exact>
+          <GoogleDocsLoginRefresh />
           <GoogleDocsPage />
         </Route>
         <Route path="/trello/input-googledocs/preview" exact>
+          <GoogleDocsLoginRefresh />
           <GoogleDocsAttachmentPreview />
         </Route>
         <Route path="/trello/output/preview" exact>
+          <GoogleDocsLoginRefresh />
           <Preview />
         </Route>
         <Route path="/trello/settings" exact>
+          <GoogleDocsLoginRefresh />
           <Settings />
         </Route>
         <Route path="/trello" exact>
@@ -52,6 +55,7 @@ const Connector = () => {
                 return {
                     icon: '',
                     title: 'Preview',
+                    action: tweetAction,
                     content: {
                         type: 'iframe',
                         url: t.signUrl(process.env.REACT_APP_BASE_URL + '/trello/output/preview'),
