@@ -9,6 +9,8 @@ import {
     Page as GoogleDocsPage,
     Button as GoogleDocsButton,
     isLoggedIn as googleDocsIsLoggedIn,
+    AttachmentSection as GoogleDocsAttachmentSection,
+    AttachmentPreview as GoogleDocsAttachmentPreview,
 } from './Input/GoogleDocs';
 import Settings from './Settings';
 
@@ -18,6 +20,9 @@ function App() {
       <Router>
         <Route path="/trello/input-googledocs" exact>
           <GoogleDocsPage />
+        </Route>
+        <Route path="/trello/input-googledocs/preview" exact>
+          <GoogleDocsAttachmentPreview />
         </Route>
         <Route path="/trello/settings" exact>
           <Settings />
@@ -31,6 +36,10 @@ function App() {
 }
 
 window.TrelloPowerUp.initialize({
+    'attachment-sections': async (t, options) => {
+        const x = (await Promise.all([GoogleDocsAttachmentSection].map((x) => x(t, options)))).flat()
+        console.log(x); return x;
+    },
     'card-buttons': async (t: Trello.PowerUp.IFrame) => {
         return (await Promise.all([
             googleDocsIsLoggedIn(t).then((x) => { return {

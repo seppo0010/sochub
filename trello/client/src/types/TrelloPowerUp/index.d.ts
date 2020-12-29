@@ -441,7 +441,7 @@ export namespace Trello {
     }
 
     export interface AttachmentSectionBase {
-      claimed: boolean;
+      claimed: any;
       icon: string;
       content: {
         type: string;
