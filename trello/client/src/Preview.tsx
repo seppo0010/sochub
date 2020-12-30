@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { getTitle, getCode } from './Input'
 import { Preview as TwitterPreview } from './Output/Twitter'
 import { Preview as MediumPreview } from './Output/Medium'
@@ -17,6 +17,7 @@ export default function Preview() {
         setTitle(t)
         setLoaded(true)
     })
+    useEffect(() => setTimeout(() => window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {})))
     return <div style={{overflow: 'auto', maxHeight: '1500px'}}>
         {!loaded && <b>loading...</b>}
         {loaded && <div>
