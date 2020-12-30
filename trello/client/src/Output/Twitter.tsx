@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Trello } from '../types/TrelloPowerUp';
 import './Twitter.css'
 import { getCode } from '../Input'
+import twitter from 'twitter-text'
 
 declare global {
     interface Window {
@@ -124,6 +125,14 @@ export const Settings = () => {
     )
 }
 
+const showTweet = (text: string) => {
+    const {valid, validRangeEnd} = twitter.parseTweet(text)
+    return <p>
+        {valid && <span dangerouslySetInnerHTML={{ __html: twitter.autoLink(twitter.htmlEscape(text)) }}></span>}
+        {!valid && text.substr(0, validRangeEnd)}
+        {!valid && <span className='error'>{text.substr(validRangeEnd)}</span>}
+    </p>
+}
 export const Preview = ({code}: { code: string }) => {
     const tweets = getTweetsFromCode(code)
     setTimeout(() => {
@@ -141,7 +150,7 @@ export const Preview = ({code}: { code: string }) => {
                     <img src="/twitter-default-figure.png" alt="" />
                     <div className="info">
                         <strong>Nombre <span>@arroba</span></strong>
-                        <p>{t.text.trim()}</p>
+                        {showTweet(t.text.trim())}
                         {t.attachments && (<ul className={'attachments attachments' + t.attachments.length}>
                             {t.attachments.map((a, i) => <li key={i}><img src={a} alt="" /></li>)}
                         </ul>)}

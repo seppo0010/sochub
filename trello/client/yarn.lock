@@ -1933,6 +1933,11 @@
   dependencies:
     "@types/jest" "*"
 
+"@types/twitter-text@^3.1.0":
+  "integrity" "sha512-AOMDM8MTYygW9net4TPFtgpbMowCkKETAzCC3jYhrolDdHd1yBgIYAao+L455lqg2aWRGEI0v5lHTw/aNBJuhg=="
+  "resolved" "https://registry.npmjs.org/@types/twitter-text/-/twitter-text-3.1.0.tgz"
+  "version" "3.1.0"
+
 "@types/uglify-js@*":
   "integrity" "sha512-7npvPKV+jINLu1SpSYVWG8KvyJBhBa8tmzMMdDoVc2pWUYHN8KIXlPJhjJ4LT97c4dXJA2SHL/q6ADbDriZN+Q=="
   "resolved" "https://registry.yarnpkg.com/@types/uglify-js/-/uglify-js-3.11.1.tgz"

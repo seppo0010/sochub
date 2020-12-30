@@ -59,6 +59,10 @@ body {
   white-space: pre-line;
 }
 
+.timeline ul.tweets > li .info p span.error {
+  background-color: #EB5A46;
+}
+
 .timeline ul.tweets > li .info ul.attachments,
 .timeline ul.tweets > li .info ul.attachments li img {
   width: 100%;
