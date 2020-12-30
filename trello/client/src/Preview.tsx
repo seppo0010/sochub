@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { getCode } from './Input'
+import { getTitle, getCode } from './Input'
 import { Preview as TwitterPreview } from './Output/Twitter'
 import { Preview as MediumPreview } from './Output/Medium'
 
@@ -10,8 +10,11 @@ export default function Preview() {
     const [displayPreview, setDisplayPreview] = useState(PREVIEW_TWITTER)
     const [loaded, setLoaded] = useState(false)
     const [code, setCode] = useState('')
+    const [title, setTitle] = useState('')
     useState(async () => {
-        setCode(await getCode())
+        const [c, t] = await Promise.all([getCode(), getTitle()])
+        setCode(c)
+        setTitle(t)
         setLoaded(true)
     })
     return <div style={{overflow: 'auto', maxHeight: '1500px'}}>
@@ -21,8 +24,8 @@ export default function Preview() {
                 <li><button onClick={() => setDisplayPreview(PREVIEW_TWITTER)}>Twitter</button></li>
                 <li><button onClick={() => setDisplayPreview(PREVIEW_MEDIUM)}>Medium</button></li>
             </ul>
-            {displayPreview == PREVIEW_TWITTER && <TwitterPreview code={code} />}
-            {displayPreview == PREVIEW_MEDIUM && <MediumPreview code={code} />}
+            {displayPreview === PREVIEW_TWITTER && <TwitterPreview code={code} />}
+            {displayPreview === PREVIEW_MEDIUM && <MediumPreview title={title} code={code} />}
         </div>}
     </div>
 }

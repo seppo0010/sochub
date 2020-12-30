@@ -18,7 +18,7 @@ function Medium(auth) {
     };
 
     this.addPost = async (title, content, options) => {
-        const userData = this.getProfile()
+        const userData = await this.getProfile()
         return await axios.post(`https://api.medium.com/v1/users/${userData.id}/posts`, {
             title,
             content,
@@ -37,14 +37,21 @@ module.exports = function (app) {
             const profile = await new Medium(token).getProfile()
             res.json({token, ...profile})
         } catch (e) {
+            console.error(e)
             res.end()
         }
     });
     app.post('/trello/output-medium/publish', async (req, res) => {
-        const {blog: {token}, code} = req.body;
-        return await (new Medium(token)).addPost('', code, {
-            contentFormat: 'markdown',
-            publishStatus: 'draft',
-        })
+        const {blog: {token}, code, title} = req.body;
+        try {
+            await (new Medium(token)).addPost(title, code, {
+                contentFormat: 'markdown',
+                publishStatus: 'draft',
+            })
+            res.json({})
+        } catch (e) {
+            console.error(e)
+            res.end()
+        }
     })
 }

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown'
 import { Trello } from '../types/TrelloPowerUp';
-import { getCode } from '../Input'
+import { getTitle, getCode } from '../Input'
 import './Medium.css'
 
 declare interface MediumBlog {
+    id: string;
     name: string;
     token: string;
 }
@@ -12,7 +13,7 @@ declare interface MediumBlog {
 const saveMediumBlog = async (mediumBlog: MediumBlog) => {
     const t = window.TrelloPowerUp.iframe();
     const mediumBlogs = await listMediumBlogs(t)
-    mediumBlogs[mediumBlog.mediumBlogId] = mediumBlog
+    mediumBlogs[mediumBlog.id] = mediumBlog
     await t.storeSecret('Medium_mediumBlogs', JSON.stringify(mediumBlogs))
     return mediumBlogs
 }
@@ -20,7 +21,7 @@ const saveMediumBlog = async (mediumBlog: MediumBlog) => {
 const removeMediumBlog = async (mediumBlog: MediumBlog) => {
     const t = window.TrelloPowerUp.iframe();
     const mediumBlogs = await listMediumBlogs(t)
-    delete mediumBlogs[mediumBlog.mediumBlogId]
+    delete mediumBlogs[mediumBlog.id]
     await t.storeSecret('Medium_mediumBlogs', JSON.stringify(mediumBlogs))
     return mediumBlogs
 }
@@ -31,31 +32,27 @@ const listMediumBlogs = async (t?: Trello.PowerUp.IFrame): Promise<{[id: string]
     return mediumBlogs
 }
 
-export const publishAction = {
-    text: 'Publish',
-    callback: async (t: Trello.PowerUp.IFrame) => {
-        return t.popup({
-            title: 'Publish!',
-            items: Object.values(await listMediumBlogs(t)).map((m) => {
-                return {
-                    text: m.mediumBlogName,
-                    callback: async () => {
-                        const code = await getCode(t)
-                        await fetch('/trello/output-medium/publish', {
-                            method: 'POST',
-                            headers: {
-                                'content-type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                blog: m,
-                                code,
-                            }),
-                        })
+export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
+    return Object.values(await listMediumBlogs(t)).map((m) => {
+        return {
+            text: `Medium ${m.name}`,
+            callback: async (t: Trello.PowerUp.IFrame) => {
+                const [code, title] = await Promise.all([getCode(t), getTitle(t)])
+                await fetch('/trello/output-medium/publish', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
                     },
-                }
-            })
-        })
-    },
+                    body: JSON.stringify({
+                        blog: m,
+                        title,
+                        code,
+                    }),
+                })
+                t.closePopup()
+            },
+        }
+    })
 }
 
 export const Settings = () => {
@@ -70,7 +67,7 @@ export const Settings = () => {
         ))}
         <p>
             Medium integration token
-            <input value={input} onInput={e => setInput(e.target.value)}/>
+            <input value={input} onInput={e => setInput((e.target as HTMLInputElement).value)}/>
             <button onClick={async () => {
                 const req = await fetch('/trello/output-medium/add-blog', {
                     method: 'POST',
@@ -88,6 +85,9 @@ export const Settings = () => {
     )
 }
 
-export const Preview = ({code}: { code: string }) => {
-    return <div className="preview"><ReactMarkdown>{code.replace(/\n\s*\*{3,}\s*\n/g, '\n').replace(/\n/g, '\n\n')}</ReactMarkdown></div>
+export const Preview = ({title, code}: { title: string, code: string }) => {
+    return <div className="preview">
+        <h2>{title}</h2>
+        <ReactMarkdown>{code.replace(/\n\s*\*{3,}\s*\n/g, '\n').replace(/\n/g, '\n\n')}</ReactMarkdown>
+    </div>
 }

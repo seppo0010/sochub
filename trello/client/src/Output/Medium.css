@@ -8,3 +8,7 @@ div.preview {
     font-size: 21px;
     line-height: 32px;
 }
+
+div.preview img {
+    max-width: 100%;
+}

@@ -52,32 +52,27 @@ const getTweetsFromCode = (code: string) => {
     })
 }
 
-export const tweetAction = {
-    text: 'Tweet',
-    callback: async (t: Trello.PowerUp.IFrame) => {
-        return t.popup({
-            title: 'Tweet!',
-            items: Object.values(await listUsers(t)).map((u) => {
-                return {
-                    text: u.userName,
-                    callback: async () => {
-                        const code = await getCode(t)
-                        const tweets = getTweetsFromCode(code)
-                        await fetch('/trello/output-twitter/twitter', {
-                            method: 'POST',
-                            headers: {
-                                'content-type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                from: u,
-                                tweets,
-                            }),
-                        })
+export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
+    return Object.values(await listUsers(t)).map((u) => {
+        return {
+            text: `Twitter ${u.userName}`,
+            callback: async (t: Trello.PowerUp.IFrame) => {
+                const code = await getCode(t)
+                const tweets = getTweetsFromCode(code)
+                await fetch('/trello/output-twitter/twitter', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
                     },
-                }
-            })
-        })
-    },
+                    body: JSON.stringify({
+                        from: u,
+                        tweets,
+                    }),
+                })
+                t.closePopup()
+            },
+        }
+    })
 }
 
 export const Settings = () => {

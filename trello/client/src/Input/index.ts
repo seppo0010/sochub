@@ -1,6 +1,12 @@
 import { getText } from './GoogleDocs'
 import { Trello } from '../types/TrelloPowerUp';
 
+export const getTitle = async (t?: Trello.PowerUp.IFrame) => {
+    t = t || window.TrelloPowerUp.iframe();
+    const card = await t.card('name')
+    return card.name
+}
+
 export const getCode = async (t?: Trello.PowerUp.IFrame) => {
     t = t || window.TrelloPowerUp.iframe();
     const card = await t.card('desc', 'attachments')

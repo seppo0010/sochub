@@ -13,7 +13,8 @@ import {
     AttachmentPreview as GoogleDocsAttachmentPreview,
     LoginRefresh as GoogleDocsLoginRefresh,
 } from './Input/GoogleDocs';
-import { tweetAction } from './Output/Twitter'
+import { twitterPublishItems } from './Output/Twitter'
+import { mediumPublishItems } from './Output/Medium'
 import Preview from './Preview';
 import Settings from './Settings';
 
@@ -55,7 +56,18 @@ const Connector = () => {
                 return {
                     icon: '',
                     title: 'Preview',
-                    action: tweetAction,
+                    action: {
+                        text: 'Publish',
+                        callback: async (t: Trello.PowerUp.IFrame) => {
+                            return t.popup({
+                                title: 'Publish this!',
+                                items: (await Promise.all([
+                                    twitterPublishItems(t),
+                                    mediumPublishItems(t),
+                                ])).flat()
+                            })
+                        },
+                    },
                     content: {
                         type: 'iframe',
                         url: t.signUrl(process.env.REACT_APP_BASE_URL + '/trello/output/preview'),
