@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown'
 import { Trello } from '../types/TrelloPowerUp';
 import { getCode } from '../Input'
+import './Medium.css'
 
 declare interface MediumBlog {
     name: string;
@@ -87,5 +89,5 @@ export const Settings = () => {
 }
 
 export const Preview = ({code}: { code: string }) => {
-    return <p>Medium preview</p>
+    return <div className="preview"><ReactMarkdown>{code.replace(/\n\s*\*{3,}\s*\n/g, '\n').replace(/\n/g, '\n\n')}</ReactMarkdown></div>
 }

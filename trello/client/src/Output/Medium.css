@@ -1,0 +1,10 @@
+div.preview {
+    font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif;
+    padding: 10px;
+    font-weight: 400;
+    text-rendering: optimizeLegibility;
+    overflow-wrap: break-word;
+    color: rgb(70, 57, 40);
+    font-size: 21px;
+    line-height: 32px;
+}
