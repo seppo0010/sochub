@@ -34,7 +34,6 @@ module.exports = function (app) {
 
     app.post('/trello/output-twitter/twitter', async (req, res) => {
         const {from, tweets} = req.body;
-        console.log(from, tweets)
         const client = new Twitter({
             consumer_key: process.env.TWITTER_CONSUMER_KEY,
             consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
