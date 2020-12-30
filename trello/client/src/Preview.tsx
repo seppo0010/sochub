@@ -17,7 +17,7 @@ export default function Preview() {
         setTitle(t)
         setLoaded(true)
     })
-    useEffect(() => setTimeout(() => window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {})))
+    useEffect(() => { setTimeout(() => window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {})) })
     return <div style={{overflow: 'auto', maxHeight: '1500px'}}>
         {!loaded && <b>loading...</b>}
         {loaded && <div>
