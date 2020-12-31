@@ -129,6 +129,9 @@ const showTweet = (text: string) => {
     </p>
 }
 export const Preview = ({code}: { code: string }) => {
+    if (!code) {
+        return <p style={{padding: 20}}>No output for Twitter</p>
+    }
     const tweets = getTweetsFromCode(code)
     setTimeout(() => {
         const t = window.TrelloPowerUp.iframe();
