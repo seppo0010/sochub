@@ -45,7 +45,7 @@ module.exports = function (app) {
           response.sendStatus(401);
           return;
         }
-        const host = process.env.SOCHUB_BASE_URL;
+        const base_url = process.env.SOCHUB_BASE_URL;
         const secret = process.env.CANVA_CLIENT_SECRET;
         const key = Buffer.from(secret, 'base64');
         const version = 'v1';
@@ -61,7 +61,7 @@ module.exports = function (app) {
                 'expiration=never&name=sochub&response_type=token' +
                 `&callback_method=fragment&key=${process.env.TRELLO_API_KEY}` +
                 '&scope=read,write' +
-                `&return_url=https://${host}/trello/input-canva/trello-return` +
+                `&return_url=${base_url}/trello/input-canva/trello-return` +
                 `?state=${request.query.state}%26user=${request.query.user}` +
                 '')
     })
