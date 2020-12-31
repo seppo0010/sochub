@@ -1,6 +1,75 @@
 import { Trello } from '../types/TrelloPowerUp';
 import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
+import { TARGET, TARGET_TWITTER, TARGET_MEDIUM } from './index'
+
+import unzip from 'unzip-js'
+
+const getZipEntry = async (blob: Blob, path: string): Promise<string> => {
+    return await new Promise((resolve, reject) => {
+        unzip(blob, function (err: any, zipFile: any) {
+            if (err) {
+                reject(err)
+                return
+            }
+            zipFile.readEntries((err: any, entries: { name: string }[]) => {
+                if (err) {
+                    reject(err)
+                    return
+                }
+                let found = false
+                entries.forEach(function (entry: any) {
+                    if (entry.name !== path) {
+                        return
+                    }
+                    found = true;
+                    zipFile.readEntryData(entry, false, function (err: any, readStream: any) {
+                        if (err) {
+                            reject(err)
+                            return
+                        }
+                        let data = ''
+                        readStream.on('data', function (chunk: any) { data += chunk })
+                        readStream.on('error', function (err: any) { reject(err) })
+                        readStream.on('end', function () { resolve(data) })
+                    })
+                })
+                if (!found) {
+                    reject(new Error('file not found'))
+                    return;
+                }
+            })
+        })
+    })
+}
+
+const findComments = (commentsXML: string): {[id: string]: string} => {
+    const parser = new DOMParser();
+    const dom = parser.parseFromString(commentsXML, "application/xml");
+    const iterator = dom.evaluate('//w:comment', dom, (p) => {
+        if (!p) return null
+        var ns: {[key: string]: string} = {
+            'w' : 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
+        };
+        return ns[p] || null;
+    }, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
+    const results: {[id: string]: string} = {}
+    let node = iterator.iterateNext();
+    while (node) {
+        if (node instanceof Element) {
+            results[node.getAttribute('w:id') || ''] = node.textContent || ''
+        }
+        node = iterator.iterateNext();
+    }
+    return results
+}
+
+(async () => {
+    const req = await fetch('https://sochub2.seppo.com.ar:8000/demo%20sochub.docx')
+    const blob = await req.blob()
+    const zipEntry = await getZipEntry(blob, 'word/comments.xml')
+    findComments(zipEntry);
+})()
 
 const saveSecret = (user: any) => {
     const t = window.TrelloPowerUp.iframe();
@@ -150,7 +219,7 @@ export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
     } })
 }
 
-export const getHTML = async (fileId: string, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
+export const getHTML = async (fileId: string, t?: Trello.PowerUp.IFrame): Promise<string> => {
     t = t || window.TrelloPowerUp.iframe();
     return new Promise((resolve, reject) => {
         gapi.load('client:auth2', async () => {
@@ -162,35 +231,90 @@ export const getHTML = async (fileId: string, t?: Trello.PowerUp.IFrame): Promis
             });
             gapi.client.setToken({access_token: oauthToken})
             gapi.client.load('drive', 'v2', async () => {
-                const res = await gapi.client.drive.files.export({
-                    fileId,
-                    mimeType: "text/html",
-                })
-                resolve(res.body)
+                const [content] = await Promise.all([
+                    gapi.client.drive.files.export({
+                        fileId,
+                        mimeType: "text/html",
+                    }),
+                ]);
+                resolve(content.body)
             })
         });
     })
 }
 
-export const getText = async (fileId: string, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
+export const getComments = async (fileId: string, t?: Trello.PowerUp.IFrame): Promise<{
+    content: string,
+    quotedFileContent: { value: string },
+    replies: { content: string }[]
+}[]> => {
+    t = t || window.TrelloPowerUp.iframe();
+    return new Promise((resolve, reject) => {
+        gapi.load('client:auth2', async () => {
+            const oauthToken = await loggedInToken(t)
+            gapi.client.init({
+                apiKey: process.env.REACT_APP_GOOGLE_DOCS_API_KEY,
+                clientId: process.env.REACT_APP_GOOGLE_DOCS_CLIENT_ID,
+                discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+            });
+            gapi.client.setToken({access_token: oauthToken})
+            gapi.client.load('drive', 'v2', async () => {
+                const [comments] = await Promise.all([
+                    gapi.client.drive.comments.list({
+                        fileId,
+                        fields: 'comments',
+                    }),
+                ]);
+                resolve(JSON.parse(comments.body).comments)
+            })
+        });
+    })
+}
+
+const textForTarget = (target: TARGET, documentText: string, commentText: string): string => {
+    return ''
+}
+export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
     const html = await getHTML(fileId, t)
-    if (html === null) {
-        return null
-    }
+
+    return null
+    let result = ''
     const el = document.createElement('div')
     el.innerHTML = html;
+    const links = Array.prototype.slice.call(el.getElementsByTagName('a'), 0)
+    for (let i = 0; i < links.length; i++) {
+        const link = links[i]
+        if (link.id.substr(0, 4) !== 'cmnt' || link.id.substr(0, 8) === 'cmnt_ref') continue;
+        const id = link.id.substr(4)
+        const refValue = link.innerText;
+        const sups = Array.prototype.slice.call(el.getElementsByTagName('sup'), 0)
+        for (let j = 0; j < sups.length; j++) {
+            const sup = sups[j]
+            if (sup.innerText !== refValue) continue;
+            const replacement = link.nextSibling;
+            if (!replacement) continue;
+            const prev = sup.previousSibling as HTMLSpanElement;
+            if (!prev || !prev.tagName) continue
+            if (prev.tagName.toUpperCase() === 'SPAN') {
+                result += ''
+            }
+            sup.parentNode.removeChild(sup)
+            break
+        }
+    }
     const imgs = el.getElementsByTagName('img');
     while (imgs.length) imgs[0].replaceWith('![](' + (imgs[0] as HTMLImageElement).src + ')')
     const ps = el.getElementsByTagName('p');
     for (let i = 0; i < ps.length; i++) ps[i].textContent += '\n'
-    return el.innerText
+    return result
 }
 
 export const AttachmentPreview = () => {
     const [preview, setPreview] = useState('')
     const t = window.TrelloPowerUp.iframe();
     useState(async () => {
-        setPreview(await getHTML(t.arg('fileId', '')) || '')
+        const html = await getHTML(t.arg('fileId', ''), t);
+        setPreview(html.replace(/<sup>.*?<\/sup/g, ''))
     })
     setTimeout(() => {
         const imgs = document.images;

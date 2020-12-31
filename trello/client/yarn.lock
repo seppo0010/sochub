@@ -2896,6 +2896,13 @@
   "resolved" "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.1.0.tgz"
   "version" "2.1.0"
 
+"blob-slicer@^1.0.0":
+  "integrity" "sha512-1Re6x6auSR0At8qIsPceM3MuZQ8iDsL6UBl1V63EZfkoeLF2tr/GkbG15WW7fXhIcWObFH0v0q7D5WeCGUUBMA=="
+  "resolved" "https://registry.npmjs.org/blob-slicer/-/blob-slicer-1.0.0.tgz"
+  "version" "1.0.0"
+  dependencies:
+    "buffer" "^4.9.1"
+
 "bluebird@^3.5.5":
   "integrity" "sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg=="
   "resolved" "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz"
@@ -3086,6 +3093,11 @@
   dependencies:
     "node-int64" "^0.4.0"
 
+"buffer-crc32@^0.2.13":
+  "integrity" "sha1-DTM+PwDqxQqhRUq9MO+MKl2ackI="
+  "resolved" "https://registry.npmjs.org/buffer-crc32/-/buffer-crc32-0.2.13.tgz"
+  "version" "0.2.13"
+
 "buffer-equal-constant-time@1.0.1":
   "integrity" "sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk="
   "resolved" "https://registry.npmjs.org/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz"
@@ -3106,7 +3118,7 @@
   "resolved" "https://registry.yarnpkg.com/buffer-xor/-/buffer-xor-1.0.3.tgz"
   "version" "1.0.3"
 
-"buffer@^4.3.0":
+"buffer@^4.3.0", "buffer@^4.9.1":
   "integrity" "sha512-xq+q3SRMOxGivLhBNaUdC64hDTQwejJ+H0T/NB1XMtTVEwNTrfFF3gAxiyW0Bu/xWEGhjVKgUcMhCrUy2+uCWg=="
   "resolved" "https://registry.yarnpkg.com/buffer/-/buffer-4.9.2.tgz"
   "version" "4.9.2"
@@ -11752,6 +11764,14 @@
   dependencies:
     "has-value" "^0.3.1"
     "isobject" "^3.0.0"
+
+"unzip-js@^1.0.0":
+  "integrity" "sha512-tpEM1avg2vW8EDvt1JlOY5vk8Di6p01AWgn4Qcf/Qb2z/5dz0SqX61iq8rfmDk5V3uZve45Wm0jiX9i28+pRvg=="
+  "resolved" "https://registry.npmjs.org/unzip-js/-/unzip-js-1.0.0.tgz"
+  "version" "1.0.0"
+  dependencies:
+    "blob-slicer" "^1.0.0"
+    "buffer-crc32" "^0.2.13"
 
 "upath@^1.1.1", "upath@^1.1.2", "upath@^1.2.0":
   "integrity" "sha512-aZwGpamFO61g3OlfT7OQCHqhGnW43ieH9WZeP7QxN/G/jS4jfqUkZxoryvJgVPEcrl5NL/ggHsSmLMHuH64Lhg=="

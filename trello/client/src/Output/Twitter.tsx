@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trello } from '../types/TrelloPowerUp';
 import './Twitter.css'
-import { getCode } from '../Input'
+import { TARGET_TWITTER, getCode } from '../Input'
 import twitter from 'twitter-text'
 
 declare global {
@@ -57,7 +57,7 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
         return {
             text: `Twitter ${u.userName}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
-                const code = await getCode(t)
+                const code = await getCode(TARGET_TWITTER, t)
                 const tweets = getTweetsFromCode(code)
                 await fetch('/trello/output-twitter/twitter', {
                     method: 'POST',
