@@ -74,15 +74,19 @@ module.exports = function (app) {
 
     const getUserToken = async (user) => {
         const stmt = db.prepare("SELECT token FROM users_token WHERE user = ? LIMIT 1");
-        const {token} = await new Promise((resolve, reject) => stmt.get(user, (err, row) => {
+        const obj = await new Promise((resolve, reject) => stmt.get(user, (err, row) => {
             if (err) reject(err)
             else resolve(row)
         }));
         stmt.finalize();
-        return token
+        return obj && obj.token
     }
     app.post('/trello/input-canva/publish/resources/find', async (request, response) => {
         const token = await getUserToken(request.body.user)
+        if (!token) {
+            res.send(401);
+            return;
+        }
         const Trello = new TrelloNodeAPI();
         Trello.setApiKey(process.env.TRELLO_API_KEY);
         Trello.setOauthToken(token);
@@ -132,6 +136,10 @@ module.exports = function (app) {
     });
     app.post('/trello/input-canva/publish/resources/get', async (request, response) => {
         const token = await getUserToken(request.body.user)
+        if (!token) {
+            res.send(401);
+            return;
+        }
         const Trello = new TrelloNodeAPI();
         Trello.setApiKey(process.env.TRELLO_API_KEY);
         Trello.setOauthToken(token);
@@ -152,6 +160,10 @@ module.exports = function (app) {
     });
     app.post('/trello/input-canva/publish/resources/upload', async (request, response) => {
         const token = await getUserToken(request.body.user)
+        if (!token) {
+            res.send(401);
+            return;
+        }
         const path = JSON.parse(request.body.parent)
         const Trello = new TrelloNodeAPI();
         Trello.setApiKey(process.env.TRELLO_API_KEY);
