@@ -157,9 +157,9 @@ export const Preview = ({code}: { code: string }) => {
                             {t.attachments.map((a, i) => <li key={i}><img src={a} alt="" /></li>)}
                         </ul>)}
                         <div className="actions">
-                            <a href="#"><img src="/comments.svg" alt="Comments" /> 3 </a>
-                            <a href="#"><img src="/retweet.svg" alt="Retweet" /> 4 </a>
-                            <a href="#"><img src="/like.svg" alt="Like" /> 5 </a>
+                            <a href="#"><img src="{process.env.REACT_APP_BASE_URL}/comments.svg" alt="Comments" /> 3 </a>
+                            <a href="#"><img src="{process.env.REACT_APP_BASE_URL}/retweet.svg" alt="Retweet" /> 4 </a>
+                            <a href="#"><img src="{process.env.REACT_APP_BASE_URL}/like.svg" alt="Like" /> 5 </a>
                         </div>
                     </div>
                 </li>
