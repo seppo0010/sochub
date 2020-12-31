@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(express.static('public'));
 
 trello(app)
-if (false) {
+if (process.env.SOCHUB_DEV) {
     app.use('/', proxy('localhost:3001'));
 } else {
     const build_path = path.join(__dirname, '../trello/client/build')
