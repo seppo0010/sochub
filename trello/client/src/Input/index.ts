@@ -21,10 +21,9 @@ export const getCode = async (target: TARGET, t?: Trello.PowerUp.IFrame) => {
     const att = card.attachments.find(
             (attachment) => attachment.url.indexOf(prefix) === 0)
     if (att) {
-        let text = await getText(att.url.substring(prefix.length), target, t)
-        if (text) {
-            return text
-        }
+        const text = await getText(att.url.substring(prefix.length), target, t)
+        t.set('card', 'shared', 'Output_' + target, !!text)
+        return text || ''
     }
     return card.desc
 }

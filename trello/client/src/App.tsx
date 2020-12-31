@@ -13,6 +13,7 @@ import {
     AttachmentPreview as GoogleDocsAttachmentPreview,
     LoginRefresh as GoogleDocsLoginRefresh,
 } from './Input/GoogleDocs';
+import { TARGET_TWITTER, TARGET_MEDIUM } from './Input'
 import { twitterPublishItems } from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
 import Preview from './Preview';
@@ -88,6 +89,29 @@ const Connector = () => {
                     title: 'Settings',
                     url: './settings',
                 });
+            },
+            'card-badges': async (t: Trello.PowerUp.IFrame): Promise<Trello.PowerUp.CardBadge[]> => {
+                const [tw, m] = await Promise.all([
+                    t.get('card', 'shared', 'Output_' + TARGET_TWITTER),
+                    t.get('card', 'shared', 'Output_' + TARGET_MEDIUM),
+                ])
+                const result: Trello.PowerUp.CardBadge[] = []
+                if (tw) {
+                    result.push({
+                        text: 'Twitter',
+                        icon: process.env.REACT_APP_BASE_URL + '/twitter.svg',
+                        color: 'light-gray',
+                    })
+                }
+                if (m) {
+                    result.push({
+                        text: 'Medium',
+                        icon: process.env.REACT_APP_BASE_URL + '/medium.svg',
+                        color: 'light-gray',
+                    })
+                }
+                    console.log(result)
+                return result
             },
         })
     })
