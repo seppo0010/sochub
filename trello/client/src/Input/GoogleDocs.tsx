@@ -136,7 +136,6 @@ const applyCommentsToDocument = (comments: Comment[], document: string, useMarkd
         }
         node = iterator.iterateNext();
     }
-    console.log(result)
     return result
 }
 
