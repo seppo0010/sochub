@@ -242,6 +242,7 @@ export const Page = () => {
                 .setOAuthToken(oauthToken)
                 .addView(new google.picker.View(google.picker.ViewId.DOCUMENTS))
                 .addView(new google.picker.DocsUploadView())
+                .setOrigin('https://trello.com')
                 .setCallback(async (data:
                     { action: string, docs?: [{id: string}] }
                 ) => {
