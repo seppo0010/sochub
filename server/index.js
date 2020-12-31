@@ -12,6 +12,7 @@ app.use(compression());
 app.use(express.json())
 app.use(express.static('public'));
 
+trello(app)
 if (false) {
     app.use('/', proxy('localhost:3001'));
 } else {
@@ -22,7 +23,6 @@ if (false) {
     });
 }
 
-trello(app)
 const listener = app.listen(port, function () {
   console.log(`Listening at http://localhost:${port}`)
 });
