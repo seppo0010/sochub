@@ -3,30 +3,15 @@
 Sochub is a hub for social network. It simplifies the managing of media
 accounts.
 
-## Architecture
+## Deploy
 
-The API represents a post. The post contains
-one text, zero or more media elements and zero or more additional keys.
+Set up configuration in ./.env and ./trello/client.env following the examples,
+build the trello client and run the web server:
 
-### Text
-
-The text is the body of the post. It is also the organizer for the media. It can
-be markdown (for medium) and plain text (for twitter).
-
-The output for each site is created from the text based on the rules for the
-site. For example, markdown images are added to tweets as uploads, and
-horizontal rules are used as Tweet threads indicators.
-
-### Media
-
-Media elements can be stored in the API. A URL is created for each one.
-
-### Additional keys
-
-Arbitrary keys can be added for additional data. For example, post tags for
-Medium or Instagram.
-
-## Storage
-
-The Sochub API is abstract and stateless. It must be extended to provide
-concrete functionallity.
+```
+$ cp .env{.example,}
+$ cp trello/client/.env{.example,}
+$ vi .env trello/client/.env
+$ pushd trello/client && npm run build && popd
+$ forever ./index.js
+```

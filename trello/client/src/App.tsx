@@ -71,7 +71,7 @@ const Connector = () => {
                     },
                     content: {
                         type: 'iframe',
-                        url: t.signUrl(process.env.REACT_APP_BASE_URL + '/trello/output/preview'),
+                        url: t.signUrl(process.env.REACT_APP_BASE_URL + '/output/preview'),
                         height: 230,
                     }
                 };

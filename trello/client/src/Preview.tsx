@@ -18,8 +18,8 @@ export default function Preview() {
             getCode(TARGET_MEDIUM),
             getTitle(),
         ]);
-        setTwitterCode(ct)
-        setMediumCode(cm)
+        setTwitterCode(ct || '')
+        setMediumCode(cm || '')
         setTitle(t)
         setLoaded(true)
     })

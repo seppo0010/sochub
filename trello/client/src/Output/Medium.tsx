@@ -38,6 +38,10 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
             text: `Medium ${m.name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
                 const [code, title] = await Promise.all([getCode(TARGET_MEDIUM, t), getTitle(t)])
+                if (!code) {
+                    alert('Error getting content to publish')
+                    return
+                }
                 await fetch('/trello/output-medium/publish', {
                     method: 'POST',
                     headers: {

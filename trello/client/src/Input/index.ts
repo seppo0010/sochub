@@ -1,4 +1,4 @@
-import { getText } from './GoogleDocs'
+import { DOC_PREFIX, getText } from './GoogleDocs'
 import { Trello } from '../types/TrelloPowerUp';
 
 export const TARGET_TWITTER = 'twitter'
@@ -17,7 +17,7 @@ export const getTitle = async (t?: Trello.PowerUp.IFrame) => {
 export const getCode = async (target: TARGET, t?: Trello.PowerUp.IFrame) => {
     t = t || window.TrelloPowerUp.iframe();
     const card = await t.card('desc', 'attachments')
-    const prefix = process.env.REACT_APP_DOC_PREFIX || '/'
+    const prefix = DOC_PREFIX
     const att = card.attachments.find(
             (attachment) => attachment.url.indexOf(prefix) === 0)
     let text;

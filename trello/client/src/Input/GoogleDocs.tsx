@@ -2,8 +2,9 @@ import { Trello } from '../types/TrelloPowerUp';
 import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 import { TARGET, TARGET_TWITTER, TARGET_MEDIUM } from './index'
-
 import unzip from 'unzip-js'
+
+export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
 
 const wordNS = (p: string | null) => {
     if (!p) return null
@@ -212,7 +213,7 @@ export const buttonShouldDisplay = async (t: Trello.PowerUp.IFrame) => {
         isLoggedIn(t),
         (async () => {
             const {attachments} = await t.card('attachments')
-            const prefix = process.env.REACT_APP_DOC_PREFIX || '/'
+            const prefix = DOC_PREFIX
             return attachments.some(function (attachment) {
                 return attachment.url.indexOf(prefix) === 0;
             })
@@ -248,7 +249,7 @@ export const Page = () => {
                         const fileId = data.docs[0].id
                         await t.attach({
                             name: 'Text',
-                            url: process.env.REACT_APP_DOC_PREFIX + fileId,
+                            url: DOC_PREFIX + fileId,
                         })
                         t.closeModal()
                     }
@@ -269,7 +270,7 @@ export const Page = () => {
 export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
     entries: Trello.PowerUp.Attachment[];
 }) => {
-    const prefix = process.env.REACT_APP_DOC_PREFIX || '/'
+    const prefix = DOC_PREFIX || '/'
     return options.entries.filter(function (attachment) {
         return attachment.url.indexOf(prefix) === 0;
     }).map((attachment) => { return {
@@ -279,7 +280,7 @@ export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
         title: () => 'GoogleDoc body',
         content: {
           type: 'iframe',
-          url: t.signUrl(process.env.REACT_APP_DOC_PREFIX + 'preview', {
+          url: t.signUrl(DOC_PREFIX + 'preview', {
             fileId: attachment.url.substr(prefix.length)
           }),
           height: 230

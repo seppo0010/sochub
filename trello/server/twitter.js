@@ -6,7 +6,7 @@ const Twitter = require('twitter');
 const twitterLogin = new LoginWithTwitter({
     consumerKey: process.env.TWITTER_CONSUMER_KEY,
     consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
-    callbackUrl: process.env.TWITTER_CALLBACK_URL,
+    callbackUrl: process.env.SOCHUB_BASE_URL + '/trello/output-twitter/add-account-callback',
 })
 
 module.exports = function (app) {

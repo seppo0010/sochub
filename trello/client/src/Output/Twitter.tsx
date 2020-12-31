@@ -58,6 +58,10 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
             text: `Twitter ${u.userName}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
                 const code = await getCode(TARGET_TWITTER, t)
+                if (!code) {
+                    alert('Error getting content to publish')
+                    return
+                }
                 const tweets = getTweetsFromCode(code)
                 await fetch('/trello/output-twitter/twitter', {
                     method: 'POST',
@@ -145,7 +149,7 @@ export const Preview = ({code}: { code: string }) => {
         <ul className="tweets">
             {tweets.map((t, i) => (
                 <li key={i}>
-                    <img src="/twitter-default-figure.png" alt="" />
+                    <img src={process.env.REACT_APP_BASE_URL + "/twitter-default-figure.png"} alt="" />
                     <div className="info">
                         <strong>Nombre <span>@arroba</span></strong>
                         {showTweet(t.text.trim())}
