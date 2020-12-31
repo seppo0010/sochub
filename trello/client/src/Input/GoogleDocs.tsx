@@ -171,7 +171,10 @@ export const Settings = () => {
                 )}
                 buttonText="Login"
                 onSuccess={setUser}
-                onFailure={(e) => setUser(undefined)}
+                onFailure={(e) => {
+                    console.error(e);
+                    setUser(undefined);
+                }}
                 isSignedIn={true}
                 cookiePolicy={'single_host_origin'}
                 scope="https://www.googleapis.com/auth/drive.file"
