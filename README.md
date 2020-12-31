@@ -17,20 +17,6 @@ The output for each site is created from the text based on the rules for the
 site. For example, markdown images are added to tweets as uploads, and
 horizontal rules are used as Tweet threads indicators.
 
-#### sochub metalanguage
-
-To be able to set different text for each social networks we have extended the
-markdown language to include conditionals. This are used as blockquote with
-parameters and executed recursively if they match. For example
-
-    All social networks.
-    ```{output in ['instagram', 'twitter']}
-    Only Instagram and Twitter.
-    ```{output == 'instagram'}
-    Only Instagram
-    ```
-    ```
-
 ### Media
 
 Media elements can be stored in the API. A URL is created for each one.
