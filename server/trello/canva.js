@@ -45,7 +45,7 @@ module.exports = function (app) {
           response.sendStatus(401);
           return;
         }
-        const host = request.header('host')
+        const host = process.env.SOCHUB_BASE_URL;
         const secret = process.env.CANVA_CLIENT_SECRET;
         const key = Buffer.from(secret, 'base64');
         const version = 'v1';
