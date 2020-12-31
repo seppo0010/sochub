@@ -15,9 +15,9 @@ app.use(express.static('public'));
 if (false) {
     app.use('/', proxy('localhost:3001'));
 } else {
-    app.use('/trello', express.static('trello/client/build'));
+    app.use('/trello', express.static('../trello/client/build'));
     app.get('/trello/*', function(req, res) {
-        res.sendFile(path.join(__dirname, 'trello/client/build', 'index.html'));
+        res.sendFile(path.join(__dirname, '../trello/client/build', 'index.html'));
     });
 }
 
