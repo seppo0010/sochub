@@ -1,3 +1,5 @@
 node_modules
 trello.db
 .env
+.env.production
+.env.development

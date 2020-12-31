@@ -1,0 +1,4 @@
+server/node_modules
+trello/client/node_modules
+trello/client/.env.development
+.env
