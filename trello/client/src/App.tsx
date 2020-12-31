@@ -110,7 +110,6 @@ const Connector = () => {
                         color: 'light-gray',
                     })
                 }
-                    console.log(result)
                 return result
             },
         })
