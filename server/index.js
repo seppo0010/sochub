@@ -5,12 +5,14 @@ const port = process.env.SOCHUB_PORT || 3000
 const trello = require('./trello');
 const path = require('path');
 const proxy = require('express-http-proxy');
+const bodyParser = require('body-parser')
 
 const app = express();
 
 app.use(compression());
 app.use(express.json())
 app.use(express.static('public'));
+app.use(bodyParser.raw({ type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }))
 
 app.use('/pandoc', proxy(process.env.PANDOC_URL));
 

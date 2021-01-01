@@ -2,147 +2,6 @@ import { Trello } from '../types/TrelloPowerUp';
 import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM } from './index'
-import unzip from 'unzip-js'
-
-export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
-
-const wordNS = (p: string | null) => {
-    if (!p) return null
-    var ns: {[key: string]: string} = {
-        'w' : 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
-    };
-    return ns[p] || null;
-}
-
-const getZipEntry = async (blob: Blob, paths: string[]): Promise<(string | undefined)[]> => {
-    return await new Promise((resolve, reject) => {
-        const result = new Array(paths.length)
-        unzip(blob, (err: any, zipFile: any) => {
-            if (err) {
-                reject(err)
-                return
-            }
-            zipFile.readEntries(async (err: any, entries: { name: string }[]) => {
-                if (err) {
-                    reject(err)
-                    return
-                }
-                entries.forEach(function (entry: any) {
-                    const index = paths.indexOf(entry.name)
-                    if (index === -1) {
-                        return
-                    }
-                    result[index] = new Promise((resolve, reject) => {
-                        zipFile.readEntryData(entry, false, function (err: any, readStream: any) {
-                            if (err) {
-                                reject(err)
-                                return
-                            }
-                            let data = ''
-                            readStream.on('data', function (chunk: any) { data += chunk })
-                            readStream.on('error', function (err: any) { reject(err) })
-                            readStream.on('end', function () { resolve(data) })
-                        })
-                    })
-                })
-                resolve(await Promise.all(result))
-            })
-        })
-    })
-}
-
-const findComments = (commentsXML: string): {[id: string]: string} => {
-    const parser = new DOMParser();
-    const dom = parser.parseFromString(commentsXML, "application/xml");
-    const iterator = dom.evaluate('//w:comment', dom, wordNS,
-            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
-    const results: {[id: string]: string} = {}
-    let node = iterator.iterateNext();
-    while (node) {
-        if (node instanceof Element) {
-            let text = ''
-            const lineInterator = dom.evaluate('.//w:t', node, wordNS,
-                    XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
-            let lineNode = lineInterator.iterateNext();
-            while (lineNode) {
-                text += lineNode.textContent
-                lineNode = lineInterator.iterateNext();
-                if (lineNode) text += '\n'
-            }
-            results[node.getAttribute('w:id') || ''] = text
-        }
-        node = iterator.iterateNext();
-    }
-    return results
-}
-
-declare type Comment = {
-    id: string;
-    text?: string;
-}
-
-const findCommentsForTarget = (commentsXML: string, target: TARGET): Comment[] => {
-    return Object.entries(findComments(commentsXML)).filter(([id, value]) => {
-        const selectedTargets = value.toLowerCase().split(':')[0].replace(/[^a-z,]+/g, '')
-        return selectedTargets.split(',').includes(target);
-    }).map(([id, value]) => {
-        let text = value.split(':')[1];
-        if (text && text.substr(-3) === '***') {
-            text += '\n'
-        }
-        return { id, text }
-    })
-}
-
-const applyCommentsToDocument = (comments: Comment[], document: string, useMarkdown: boolean): string => {
-    let result = ''
-    const parser = new DOMParser();
-    const dom = parser.parseFromString(document, "application/xml");
-    const iterator = dom.evaluate('//w:r|//w:p|//w:commentRangeStart|//w:commentRangeEnd',
-            dom, wordNS, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
-    let node = iterator.iterateNext();
-    let openComments = []
-    let appendToBuffer = false;
-    let wasBold = false;
-    while (node) {
-        if (node instanceof Element) {
-            const id = node.getAttribute('w:id') || ''
-            const comment = comments.find((c) => c.id === id)
-            if (node.tagName === 'w:commentRangeStart' && comment) {
-                if (comment) {
-                    openComments.push(comment)
-                    appendToBuffer = comment.text === undefined
-                }
-            }
-            if (node.tagName === 'w:p' && appendToBuffer) {
-                result += '\n'
-            }
-            if (node.tagName === 'w:r' && appendToBuffer) {
-                const isBold = useMarkdown && dom.evaluate('count(.//w:b)', node, wordNS, XPathResult.NUMBER_TYPE, null).numberValue > 0
-                if (isBold !== wasBold) result += '**'
-                result += node.textContent
-                wasBold = isBold
-            }
-            if (node.tagName === 'w:commentRangeEnd' && comment) {
-                const index = openComments.indexOf(comment)
-                if (index !== -1) {
-                    openComments.splice(index, 1)
-                    if (openComments.length === 0) {
-                        appendToBuffer = false;
-                    } else {
-                        appendToBuffer = openComments[openComments.length - 1].text === undefined
-                    }
-                }
-                if (comment.text && (openComments.length === 0 || openComments[openComments.length - 1].text === undefined)) {
-                    result += comment.text
-                }
-            }
-        }
-        node = iterator.iterateNext();
-    }
-    console.log(result)
-    return result
-}
 
 const saveSecret = (user: any) => {
     const t = window.TrelloPowerUp.iframe();
@@ -307,40 +166,101 @@ export const getContent = async (fileId: string, t?: Trello.PowerUp.IFrame, mime
                 discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
             });
             gapi.client.setToken({access_token: oauthToken})
+
             gapi.client.load('drive', 'v2', async () => {
-                const [content] = await Promise.all([
-                    gapi.client.drive.files.export({
-                        fileId,
-                        mimeType,
-                    }),
-                ]);
+                const content = await gapi.client.drive.files.export({
+                    fileId,
+                    mimeType,
+                });
                 resolve(content.body)
             })
         });
     })
 }
 
+declare type Comment = {
+    include: boolean;
+    text?: string;
+}
+
+
+const parseCommentsForTarget = (value: string, target: TARGET): Comment => {
+    const selectedTargets = value.toLowerCase().split(':')[0].replace(/[^a-z,]+/g, '')
+    let text = value.split(':')[1];
+    if (text && text.substr(-3) === '***') {
+        text = '\n' + text + '\n'
+    }
+    return {
+        include: selectedTargets.includes(target),
+        text,
+    }
+}
+
+const applyCommentsToDocument = (html: string, target: TARGET): string => {
+    const root = document.createElement('body');
+    root.innerHTML = html
+        console.log(html)
+    let commentId = 0
+    let result = ''
+    while (true) {
+        commentId++;
+        let iterator = document.evaluate(
+            `//span[@class="comment-start"][@id=${commentId-1}]`, root, null,
+            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+        let n = iterator.iterateNext() as (Element | undefined);
+        if (!n) {
+            break
+        }
+        const comment = parseCommentsForTarget(n.textContent || '', target);
+        if (!comment.include) {
+            continue;
+        }
+
+        if (comment.text) {
+            result += comment.text
+        } else {
+            iterator = document.evaluate(
+                `//span[@class="comment-end"][@id=${commentId-1}]`, root, null,
+                XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+            let n2 = iterator.iterateNext() as (Element | undefined);
+            if (!n2) {
+                continue;
+            }
+
+            const myHtml = root.innerHTML
+            result += myHtml.substring(
+                myHtml.indexOf(n.outerHTML) + n.outerHTML.length,
+                myHtml.indexOf(n2.outerHTML)
+            )
+        }
+    }
+    root.innerHTML = result
+    return (root as any)[{
+        [TARGET_TWITTER]: 'textContent',
+        [TARGET_MEDIUM]: 'innerHTML',
+        [TARGET_INSTAGRAM]: 'textContent',
+    }[target]]
+}
+
 export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
-    const str = await getContent(fileId, t, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    const bytes = new Uint8Array(str.length);
-    for (var i = 0; i < str.length; i++) {
-        bytes[i] = str.charCodeAt(i);
+    const mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    const str = await getContent(fileId, t, mimeType)
+    const body = new Uint8Array(str.length)
+    for (let i = 0; i < str.length; i++) {
+        body[i] = str.charCodeAt(i) & 0xFF
     }
-    const [comments, document] = await getZipEntry(new Blob([bytes]), [
-        'word/comments.xml',
-        'word/document.xml',
-    ])
-    if (!comments) {
-        return Promise.resolve(null)
-    }
-    if (!document) {
-        return Promise.reject('no document')
-    }
-    return applyCommentsToDocument(findCommentsForTarget(comments, target), document, ({
-        [TARGET_MEDIUM]: true,
-        [TARGET_TWITTER]: false,
-        [TARGET_INSTAGRAM]: false,
-    }[target]))
+
+    const request = await fetch(process.env.REACT_APP_BASE_URL + '/../pandoc', {
+        method: 'POST',
+        body,
+        headers: new Headers({
+            'Content-Type': mimeType,
+            'Accept': 'text/html',
+            'X-track-changes': 'all'
+        }),
+    })
+    const document = await request.text()
+    return applyCommentsToDocument(document, target)
 }
 
 export const AttachmentPreview = () => {
