@@ -12,6 +12,8 @@ app.use(compression());
 app.use(express.json())
 app.use(express.static('public'));
 
+app.use('/pandoc', proxy(process.env.PANDOC_URL));
+
 trello(app)
 if (process.env.SOCHUB_DEV) {
     app.use('/', proxy('localhost:3001'));
