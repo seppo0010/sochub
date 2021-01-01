@@ -273,7 +273,7 @@ export const Page = () => {
 
 export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
     entries: Trello.PowerUp.Attachment[];
-}) => {
+}): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
     const prefix = DOC_PREFIX || '/'
     return options.entries.filter(function (attachment) {
         return attachment.url.indexOf(prefix) === 0;

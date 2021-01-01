@@ -13,6 +13,9 @@ import {
     AttachmentPreview as GoogleDocsAttachmentPreview,
     LoginRefresh as GoogleDocsLoginRefresh,
 } from './Input/GoogleDocs';
+import {
+    AttachmentSection as CanvaAttachmentSection,
+} from './Input/Canva';
 import { TARGET_TWITTER, TARGET_MEDIUM } from './Input'
 import { twitterPublishItems } from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
@@ -50,8 +53,8 @@ function App() {
 const Connector = () => {
     useState(() => {
         window.TrelloPowerUp.initialize({
-            'attachment-sections': async (t, options) => {
-                return (await Promise.all([GoogleDocsAttachmentSection].map((x) => x(t, options)))).flat()
+            'attachment-sections': async (t, options): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
+                return (await Promise.all([GoogleDocsAttachmentSection, CanvaAttachmentSection].map((x) => x(t, options)))).flat()
             },
             'card-back-section': async (t) => {
                 return {
