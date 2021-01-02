@@ -98,7 +98,7 @@ const applyCommentsToDocument = (comments: Comment[], document: string, useMarkd
     let result = ''
     const parser = new DOMParser();
     const dom = parser.parseFromString(document, "application/xml");
-    const iterator = dom.evaluate('//w:r|//w:commentRangeStart|//w:commentRangeEnd',
+    const iterator = dom.evaluate('//w:r|//w:p|//w:commentRangeStart|//w:commentRangeEnd',
             dom, wordNS, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
     let node = iterator.iterateNext();
     let openComments = []
@@ -113,6 +113,9 @@ const applyCommentsToDocument = (comments: Comment[], document: string, useMarkd
                     openComments.push(comment)
                     appendToBuffer = comment.text === undefined
                 }
+            }
+            if (node.tagName === 'w:p' && appendToBuffer) {
+                result += '\n'
             }
             if (node.tagName === 'w:r' && appendToBuffer) {
                 const isBold = useMarkdown && dom.evaluate('count(.//w:b)', node, wordNS, XPathResult.NUMBER_TYPE, null).numberValue > 0
@@ -137,6 +140,7 @@ const applyCommentsToDocument = (comments: Comment[], document: string, useMarkd
         }
         node = iterator.iterateNext();
     }
+    console.log(result)
     return result
 }
 
