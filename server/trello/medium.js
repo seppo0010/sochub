@@ -45,7 +45,7 @@ module.exports = function (app) {
         const {blog: {token}, code, title} = req.body;
         try {
             await (new Medium(token)).addPost(title, code, {
-                contentFormat: 'markdown',
+                contentFormat: 'html',
                 publishStatus: 'draft',
             })
             res.json({})

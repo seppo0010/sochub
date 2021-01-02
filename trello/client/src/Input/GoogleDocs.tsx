@@ -198,6 +198,25 @@ const parseCommentsForTarget = (value: string, target: TARGET): Comment => {
     }
 }
 
+function dfs(root: Node, keep: (node: Node) => boolean) {
+    let stack: Node[] = [root]
+    while (stack){
+        let currentNode = stack.pop()
+        if (!currentNode) break;
+        if (!keep(currentNode)) {
+            if (currentNode.parentNode) {
+                currentNode.parentNode.removeChild(currentNode)
+            }
+            continue
+        }
+        if(currentNode && currentNode.childNodes && currentNode.childNodes.length > 0){
+            for(let i = currentNode.childNodes.length - 1; i >= 0; i--){
+                stack.push(currentNode.childNodes[i]);
+            }
+        }
+    }
+}
+
 const applyCommentsToDocument = (html: string, target: TARGET): string => {
     const root = document.createElement('body');
     root.innerHTML = html
@@ -211,39 +230,71 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
         n = iterator.iterateNext() as (Element | undefined);
     }
 
-    let result = ''
+    // first we are gonna apply all replacements in comments (e.g.: "twitter: write this")
     for (let commentId = 0; commentId <= maxCommentId; commentId++) {
         let iterator = document.evaluate(
             `//span[@class="comment-start"][@id=${commentId}]`, root, null,
             XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
         let n = iterator.iterateNext() as (Element | undefined);
+        iterator = document.evaluate(
+            `//span[@class="comment-end"][@id=${commentId}]`, root, null,
+            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+        let n2 = iterator.iterateNext() as (Element | undefined);
+
         if (!n) {
+            if (n2) {
+                n2.remove()
+            }
             continue
         }
+
         const comment = parseCommentsForTarget(n.textContent || '', target);
         if (!comment.include) {
+            n.remove()
+            if (n2) {
+                n2.remove()
+            }
             continue;
         }
 
         if (comment.text) {
-            result += comment.text
-        } else {
-            iterator = document.evaluate(
-                `//span[@class="comment-end"][@id=${commentId}]`, root, null,
-                XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-            let n2 = iterator.iterateNext() as (Element | undefined);
             if (!n2) {
                 continue;
             }
 
             const myHtml = root.innerHTML
-            result += myHtml.substring(
-                myHtml.indexOf(n.outerHTML) + n.outerHTML.length,
-                myHtml.indexOf(n2.outerHTML)
-            )
+            const start = myHtml.indexOf(n.outerHTML) + n.outerHTML.length
+            const end = myHtml.indexOf(n2.outerHTML)
+            root.innerHTML = myHtml.substr(0, start) + comment.text + myHtml.substr(end)
         }
     }
-    root.innerHTML = result
+
+    // now we are going to keep all the nodes that are between a comment-start
+    // and a comment-end, or that have a comment-start or comment-end as descendant
+    let inComment:string[] = [];
+    dfs(root, (node) => {
+        if (node instanceof Element) {
+            const klass = node.getAttribute('class')
+            const id = node.getAttribute('id')
+            if (node.tagName === 'SPAN' && id && klass) {
+                if (klass === 'comment-start') {
+                    inComment.push(id)
+                     return false
+                }
+                if (klass === 'comment-end') {
+                    const index = inComment.indexOf(id)
+                    if (index !== -1) {
+                      inComment.splice(index, 1)
+                    }
+                    return false
+                }
+            }
+        }
+        return inComment.length > 0 || document.evaluate(
+            'count(.//span[@class="comment-start"]|.//span[@class="comment-end"])',
+            node, null, XPathResult.NUMBER_TYPE, null).numberValue > 0
+    })
+
     return (root as any)[{
         [TARGET_TWITTER]: 'textContent',
         [TARGET_MEDIUM]: 'innerHTML',

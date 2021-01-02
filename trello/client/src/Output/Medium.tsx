@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import ReactMarkdown from 'react-markdown'
 import { Trello } from '../types/TrelloPowerUp';
 import { TARGET_MEDIUM, fetchTitleAndCode } from '../Input'
 import './Medium.css'
@@ -96,6 +95,6 @@ export const Preview = ({title, code}: { title: string, code: string }) => {
     }
     return <div className="preview">
         <h2>{title}</h2>
-        <ReactMarkdown>{code.replace(/\n\s*\*{3,}\s*\n/g, '\n').replace(/\n/g, '\n\n')}</ReactMarkdown>
+        <div dangerouslySetInnerHTML={{ __html: code}}></div>
     </div>
 }
