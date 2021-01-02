@@ -91,6 +91,7 @@ const Connector = () => {
                 return t.modal({
                     title: 'Settings',
                     url: './settings',
+                    height: 600,
                 });
             },
             'card-badges': async (t: Trello.PowerUp.IFrame): Promise<Trello.PowerUp.CardBadge[]> => {

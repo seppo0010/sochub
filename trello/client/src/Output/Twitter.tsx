@@ -15,6 +15,9 @@ declare interface User {
     userName: string;
     userToken: string;
     userTokenSecret: string;
+    screen_name: string;
+    name: string;
+    profile_image_url: string;
 }
 
 const saveUser = async (user: User) => {
