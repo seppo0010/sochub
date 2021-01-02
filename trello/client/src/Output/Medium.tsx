@@ -46,7 +46,7 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
                         alert('Error getting content to publish')
                         return
                     }
-                    await fetch('/trello/output-medium/publish', {
+                    const res = await fetch('/trello/output-medium/publish', {
                         method: 'POST',
                         headers: {
                             'content-type': 'application/json',
@@ -57,7 +57,12 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
                             code,
                         }),
                     })
+                    const j = await res.json();
                     t.closePopup()
+                    t.attach({
+                        name: 'Medium',
+                        url: j.url,
+                    });
                     t.alert({
                         message: 'Post published as draft',
                         duration: 6,
