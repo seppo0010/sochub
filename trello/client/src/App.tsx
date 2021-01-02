@@ -17,7 +17,10 @@ import {
     AttachmentSection as CanvaAttachmentSection,
 } from './Input/Canva';
 import { TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM } from './Input'
-import { twitterPublishItems } from './Output/Twitter'
+import {
+    twitterPublishItems,
+    AttachmentSection as TwitterAttachmentSection
+} from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
 import Preview from './Preview';
 import Settings from './Settings';
@@ -54,7 +57,11 @@ const Connector = () => {
     useState(() => {
         window.TrelloPowerUp.initialize({
             'attachment-sections': async (t, options): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
-                return (await Promise.all([GoogleDocsAttachmentSection, CanvaAttachmentSection].map((x) => x(t, options)))).flat()
+                return (await Promise.all([
+                    TwitterAttachmentSection,
+                    GoogleDocsAttachmentSection,
+                    CanvaAttachmentSection,
+                ].map((x) => x(t, options)))).flat()
             },
             'card-back-section': async (t) => {
                 return {

@@ -249,3 +249,24 @@ export const Preview = ({code}: { code: string }) => {
         </ul>
     </section>
 }
+
+// https://twitter.com/ODIAasoc/status/1343532486035341314
+export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
+    entries: Trello.PowerUp.Attachment[];
+}): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
+    return await Promise.all(options.entries.filter(function (attachment) {
+        return attachment.url.match(/https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/([0-9]+)/)
+    }).map(async (attachment) => {
+        return {
+            id: attachment.url,
+            claimed: [attachment],
+            icon: '',
+            title: () => 'Tweet',
+            content: {
+              type: 'iframe',
+              url: t.signUrl(process.env.REACT_APP_BASE_URL + '/output-twitter/preview-tweet?url=' + encodeURIComponent(attachment.url)),
+              height: 230
+            }
+        }
+    }))
+}
