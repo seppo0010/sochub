@@ -3,6 +3,8 @@ import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM } from './index'
 
+export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
+
 const saveSecret = (user: any) => {
     const t = window.TrelloPowerUp.iframe();
     const u = user as GoogleLoginResponse;
