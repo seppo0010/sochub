@@ -28,7 +28,20 @@ module.exports = function (app) {
                 res.end()
                 return
             }
-            res.json(user)
+            const client = new Twitter({
+                consumer_key: process.env.TWITTER_CONSUMER_KEY,
+                consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+                access_token_key: user.userToken,
+                access_token_secret: user.userTokenSecret,
+            });
+            client.get('users/show', {user_id: user.userId}, (error, data, response) => {
+                if (error) {
+                    console.error(error);
+                    res.status(400)
+                } else {
+                    res.json({...user, ...data})
+                }
+            })
         });
     });
 

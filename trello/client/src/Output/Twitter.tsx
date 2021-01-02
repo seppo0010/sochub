@@ -116,14 +116,48 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
     })
 }
 
+const updatePreviewAccount = async (user?: User) => {
+    if (user) {
+        const {screen_name, name, profile_image_url} = user
+        window.TrelloPowerUp.iframe().set('board', 'shared', 'Output_' + TARGET_TWITTER + '_preview', JSON.stringify({screen_name, name, profile_image_url}))
+    } else {
+        window.TrelloPowerUp.iframe().remove('board', 'shared', 'Output_' + TARGET_TWITTER + '_preview')
+    }
+}
+
+const getPreviewAccount = async (): Promise<User | undefined> => {
+    const data = await window.TrelloPowerUp.iframe().get('board', 'shared', 'Output_' + TARGET_TWITTER + '_preview')
+    if (data) {
+        return JSON.parse(data)
+    }
+}
+
 export const Settings = () => {
     const [users, setUsers] = useState<{[id: string]: User}>({});
+    const [previewAccount, setPreviewAccount] = useState<string>('');
+    useState(async () => {
+        const pAccount = await getPreviewAccount()
+        if (pAccount) {
+            setPreviewAccount(pAccount.userId)
+        }
+    })
     useState(async () => setUsers(await listUsers()))
     return (<>
         {Object.values(users).map((u: User) => (
-            <p key={u.userId}>Twitter {u.userName}<button onClick={async () => {
-                setUsers(await removeUser(u))
-            }}>Remove account</button></p>
+            <p key={u.userId}>
+                Twitter {u.userName}
+                {previewAccount === u.userId && <button onClick={async () => {
+                    setPreviewAccount('')
+                    updatePreviewAccount()
+                }}>Unset as preview account</button>}
+                {previewAccount !== u.userId && <button onClick={async () => {
+                    setPreviewAccount(u.userId)
+                    updatePreviewAccount(u)
+                }}>Set as preview account</button>}
+                <button onClick={async () => {
+                    setUsers(await removeUser(u))
+                }}>Remove account</button>
+            </p>
         ))}
         <p>
             Twitter
@@ -171,6 +205,13 @@ const showTweet = (text: string) => {
 }
 export const Preview = ({code}: { code: string }) => {
     window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_TWITTER, !!code)
+    const [user, setUser] = useState({screen_name: 'twitter', name: 'Twitter', profile_image_url: process.env.REACT_APP_BASE_URL + "/twitter-default-figure.png"})
+    useState(async () => {
+        const account = await getPreviewAccount()
+        if (account) {
+            setUser(account)
+        }
+    })
     if (!code) {
         return <p style={{padding: 20}}>No output for Twitter</p>
     }
@@ -187,9 +228,9 @@ export const Preview = ({code}: { code: string }) => {
         <ul className="tweets">
             {tweets.map((t, i) => (
                 <li key={i}>
-                    <img src={process.env.REACT_APP_BASE_URL + "/twitter-default-figure.png"} alt="" />
+                    <img src={user.profile_image_url} alt="" />
                     <div className="info">
-                        <strong>Nombre <span>@arroba</span></strong>
+                        <strong>{user.name} <span>@{user.screen_name}</span></strong>
                         {showTweet(t.text.trim())}
                         {t.attachments && (<ul className={'attachments attachments' + t.attachments.length}>
                             {t.attachments.map((a, i) => <li key={i}><img src={a} alt="" /></li>)}
