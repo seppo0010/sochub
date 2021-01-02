@@ -1,7 +1,7 @@
 import { Trello } from '../types/TrelloPowerUp';
 import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
-import { TARGET, TARGET_TWITTER, TARGET_MEDIUM } from './index'
+import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM } from './index'
 import unzip from 'unzip-js'
 
 export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
@@ -335,6 +335,7 @@ export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp
     return applyCommentsToDocument(findCommentsForTarget(comments, target), document, ({
         [TARGET_MEDIUM]: true,
         [TARGET_TWITTER]: false,
+        [TARGET_INSTAGRAM]: false,
     }[target]))
 }
 

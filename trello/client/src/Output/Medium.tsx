@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown'
 import { Trello } from '../types/TrelloPowerUp';
-import { TARGET_MEDIUM, getTitle, getCode } from '../Input'
+import { TARGET_MEDIUM, fetchTitleAndCode } from '../Input'
 import './Medium.css'
 
 declare interface MediumBlog {
@@ -37,7 +37,7 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
         return {
             text: `Medium ${m.name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
-                const [code, title] = await Promise.all([getCode(TARGET_MEDIUM, t), getTitle(t)])
+                const {code, title} = await fetchTitleAndCode(TARGET_MEDIUM, t)
                 if (!code) {
                     alert('Error getting content to publish')
                     return
@@ -90,6 +90,7 @@ export const Settings = () => {
 }
 
 export const Preview = ({title, code}: { title: string, code: string }) => {
+    window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_MEDIUM, !!title && !!code)
     if (!code) {
         return <p style={{padding: 20}}>No output for Medium</p>
     }

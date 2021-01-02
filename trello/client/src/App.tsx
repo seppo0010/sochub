@@ -16,7 +16,7 @@ import {
 import {
     AttachmentSection as CanvaAttachmentSection,
 } from './Input/Canva';
-import { TARGET_TWITTER, TARGET_MEDIUM } from './Input'
+import { TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM } from './Input'
 import { twitterPublishItems } from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
 import Preview from './Preview';
@@ -94,9 +94,10 @@ const Connector = () => {
                 });
             },
             'card-badges': async (t: Trello.PowerUp.IFrame): Promise<Trello.PowerUp.CardBadge[]> => {
-                const [tw, m] = await Promise.all([
+                const [tw, m, ig] = await Promise.all([
                     t.get('card', 'shared', 'Output_' + TARGET_TWITTER),
                     t.get('card', 'shared', 'Output_' + TARGET_MEDIUM),
+                    t.get('card', 'shared', 'Output_' + TARGET_INSTAGRAM),
                 ])
                 const result: Trello.PowerUp.CardBadge[] = []
                 if (tw) {
@@ -110,6 +111,13 @@ const Connector = () => {
                     result.push({
                         text: 'Medium',
                         icon: process.env.REACT_APP_BASE_URL + '/medium.svg',
+                        color: 'light-gray',
+                    })
+                }
+                if (ig) {
+                    result.push({
+                        text: 'Instagram',
+                        icon: process.env.REACT_APP_BASE_URL + '/instagram.svg',
                         color: 'light-gray',
                     })
                 }

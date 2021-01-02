@@ -5,27 +5,29 @@ export const TARGET_TWITTER = 'twitter'
 export type TARGET_TWITTER = 'twitter'
 export const TARGET_MEDIUM = 'medium'
 export type TARGET_MEDIUM = 'medium'
-export type TARGET = TARGET_TWITTER | TARGET_MEDIUM
+export const TARGET_INSTAGRAM = 'instagram'
+export type TARGET_INSTAGRAM = 'instagram'
+export type TARGET = TARGET_TWITTER | TARGET_MEDIUM | TARGET_INSTAGRAM
 
 
-export const getTitle = async (t?: Trello.PowerUp.IFrame) => {
+export const fetchTitleAndCode = async (target: TARGET, t?: Trello.PowerUp.IFrame) => {
     t = t || window.TrelloPowerUp.iframe();
-    const card = await t.card('name')
-    return card.name
+    const card = await t.card('name', 'desc', 'attachments')
+    return {
+        title: card.name,
+        code: await getCode(card.desc, target, card.attachments, t),
+    }
 }
-
-export const getCode = async (target: TARGET, t?: Trello.PowerUp.IFrame) => {
+export const getCode = async (desc: string, target: TARGET, attachments: {url: string}[], t?: Trello.PowerUp.IFrame) => {
     t = t || window.TrelloPowerUp.iframe();
-    const card = await t.card('desc', 'attachments')
     const prefix = DOC_PREFIX
-    const att = card.attachments.find(
+    const att = attachments.find(
             (attachment) => attachment.url.indexOf(prefix) === 0)
     let text;
     if (att) {
         text = await getText(att.url.substring(prefix.length), target, t)
     } else {
-        text = card.desc;
+        text = desc;
     }
-    t.set('card', 'shared', 'Output_' + target, !!text)
     return text;
 }
