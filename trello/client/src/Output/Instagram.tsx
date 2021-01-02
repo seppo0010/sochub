@@ -28,7 +28,7 @@ export const Preview = ({code}: { code: string }) => {
                 <li><img src={process.env.REACT_APP_BASE_URL + "/ig-bookmark.svg"} alt="Bookmark" /></li>
             </ul>
             <p><strong>45 likes</strong></p>
-            <p><strong>myuser</strong> code</p>
+            <p><strong>myuser</strong> {code}</p>
         </div>}
     </div>
 }
