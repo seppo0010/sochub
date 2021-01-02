@@ -1706,6 +1706,11 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/escape-html@^1.0.0":
+  "integrity" "sha512-Ehe6irbxo5BSYwG03buglLJCmy3JqqtC69UvopsBWYf4hDa+ZODJ7BuZU6y+YE4U6MaoSruTxM2+uePfAHts9Q=="
+  "resolved" "https://registry.npmjs.org/@types/escape-html/-/escape-html-1.0.0.tgz"
+  "version" "1.0.0"
+
 "@types/eslint@^7.2.4":
   "integrity" "sha512-Dc6ar9x16BdaR3NSxSF7T4IjL9gxxViJq8RmFd+2UAyA+K6ck2W+gUwfgpG/y9TPyUuBL35109bbULpEynvltA=="
   "resolved" "https://registry.yarnpkg.com/@types/eslint/-/eslint-7.2.5.tgz"
@@ -4767,7 +4772,7 @@
   "resolved" "https://registry.yarnpkg.com/escalade/-/escalade-3.1.1.tgz"
   "version" "3.1.1"
 
-"escape-html@~1.0.3":
+"escape-html@^1.0.3", "escape-html@~1.0.3":
   "integrity" "sha1-Aljq5NPQwJdN4cFpGI7wBR0dGYg="
   "resolved" "https://registry.yarnpkg.com/escape-html/-/escape-html-1.0.3.tgz"
   "version" "1.0.3"

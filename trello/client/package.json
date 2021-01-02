@@ -11,6 +11,7 @@
     "@types/node": "^14.14.9",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "escape-html": "^1.0.3",
     "googleapis": "^39.2.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -54,6 +55,7 @@
     ]
   },
   "devDependencies": {
+    "@types/escape-html": "^1.0.0",
     "@types/gapi": "^0.0.39",
     "@types/gapi.auth2": "^0.0.52",
     "@types/gapi.client.drive": "^3.0.13",

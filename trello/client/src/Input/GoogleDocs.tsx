@@ -2,6 +2,7 @@ import { Trello } from '../types/TrelloPowerUp';
 import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM } from './index'
+import escapeHtml from 'escape-html'
 
 export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
 
@@ -295,11 +296,17 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
             node, null, XPathResult.NUMBER_TYPE, null).numberValue > 0
     })
 
-    return (root as any)[{
+    let value = (root as any)[{
         [TARGET_TWITTER]: 'textContent',
         [TARGET_MEDIUM]: 'innerHTML',
         [TARGET_INSTAGRAM]: 'textContent',
     }[target]]
+    if (target === TARGET_MEDIUM) {
+        value = value.replace(/!\[(.*?)\]\((.*?)\)/g, (match: any, alt: string, url: string) => {
+            return `<img src="${escapeHtml(encodeURI(url))}" alt="${escapeHtml(alt)}" />`
+        })
+    }
+    return value
 }
 
 export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
