@@ -199,17 +199,24 @@ const parseCommentsForTarget = (value: string, target: TARGET): Comment => {
 const applyCommentsToDocument = (html: string, target: TARGET): string => {
     const root = document.createElement('body');
     root.innerHTML = html
-        console.log(html)
-    let commentId = 0
+    let maxCommentId = 0;
+    let iterator = document.evaluate(
+        `//span[@class="comment-start"]`, root, null,
+        XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+    let n = iterator.iterateNext() as (Element | undefined);
+    while (n) {
+        maxCommentId = Math.max(maxCommentId, parseInt(n.getAttribute('id') || '0', 10))
+        n = iterator.iterateNext() as (Element | undefined);
+    }
+
     let result = ''
-    while (true) {
-        commentId++;
+    for (let commentId = 0; commentId <= maxCommentId; commentId++) {
         let iterator = document.evaluate(
-            `//span[@class="comment-start"][@id=${commentId-1}]`, root, null,
+            `//span[@class="comment-start"][@id=${commentId}]`, root, null,
             XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
         let n = iterator.iterateNext() as (Element | undefined);
         if (!n) {
-            break
+            continue
         }
         const comment = parseCommentsForTarget(n.textContent || '', target);
         if (!comment.include) {
@@ -220,7 +227,7 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
             result += comment.text
         } else {
             iterator = document.evaluate(
-                `//span[@class="comment-end"][@id=${commentId-1}]`, root, null,
+                `//span[@class="comment-end"][@id=${commentId}]`, root, null,
                 XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
             let n2 = iterator.iterateNext() as (Element | undefined);
             if (!n2) {
