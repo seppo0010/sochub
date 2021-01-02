@@ -57,22 +57,43 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
         return {
             text: `Twitter ${u.userName}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
+                t.alert({
+                    message: 'Publishing...',
+                    duration: 6,
+                });
                 const {code} = await fetchTitleAndCode(TARGET_TWITTER, t)
                 if (!code) {
                     alert('Error getting content to publish')
                     return
                 }
                 const tweets = getTweetsFromCode(code)
-                await fetch('/trello/output-twitter/twitter', {
-                    method: 'POST',
-                    headers: {
-                        'content-type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        from: u,
-                        tweets,
-                    }),
-                })
+                try {
+                    const req = await fetch('/trello/output-twitter/twitter', {
+                        method: 'POST',
+                        headers: {
+                            'content-type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            from: u,
+                            tweets,
+                        }),
+                    })
+                    const res = await req.json()
+                    if (res.error) {
+                        throw new Error(res)
+                    }
+                    t.alert({
+                        message: 'Tweet published',
+                        duration: 6,
+                        display: 'success'
+                    });
+                } catch (e) {
+                    t.alert({
+                        message: 'Tweet failed :(',
+                        duration: 6,
+                        display: 'error'
+                    });
+                }
                 t.closePopup()
             },
         }

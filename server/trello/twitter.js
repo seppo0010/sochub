@@ -105,6 +105,7 @@ module.exports = function (app) {
                 })
             });
         })
+
         const doTweet = async () => {
             const {text, attachments} = tweets[tweetPos];
             const media_ids = await Promise.all(attachments.map((url) => uploadAttachment(url)))
@@ -118,8 +119,15 @@ module.exports = function (app) {
             await doTweet()
             return tweetNext()
         }
-        await doTweet(tweets[0])
-        await tweetNext();
-        res.end()
+        try {
+            await doTweet(tweets[0])
+            let id = lastReply
+            await tweetNext();
+            res.json({id})
+        } catch (e) {
+            console.error(e)
+            res.status(500)
+            res.json({error: 'internal error'})
+        }
     })
 }
