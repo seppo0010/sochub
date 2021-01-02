@@ -3,6 +3,7 @@ const animated = require('animated-gif-detector')
 const LoginWithTwitter = require('login-with-twitter')
 const Twitter = require('twitter');
 const axios = require('axios')
+const escapeHtml = require('escape-html')
 
 const twitterLogin = new LoginWithTwitter({
     consumerKey: process.env.TWITTER_CONSUMER_KEY,
@@ -13,10 +14,15 @@ const twitterLogin = new LoginWithTwitter({
 module.exports = function (app) {
     app.get('/trello/output-twitter/preview-tweet', async (req, res) => {
         const url = req.query.url
-        const api = await axios.get(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`, { accept: 'application/json' })
-        res.send(api.data.html)
-        res.end()
-        })
+        try {
+            const api = await axios.get(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`, { accept: 'application/json' })
+            res.send(api.data.html)
+            res.end()
+        } catch (e) {
+            res.send(`Unable to preview tweet: <a href="${escapeHtml(url)}" target="_blank">${escapeHtml(url)}</a>`)
+            res.end()
+        }
+    })
     app.get('/trello/output-twitter/add-account', async (req, res) => {
         twitterLogin.login((err, tokenSecret, url) => res.json({url, tokenSecret}))
     });

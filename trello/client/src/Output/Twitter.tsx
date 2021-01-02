@@ -101,6 +101,10 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
                     if (res.error) {
                         throw new Error(res)
                     }
+                    t.attach({
+                        name: 'Tweet',
+                        url: `https://twitter.com/${u.userName}/status/${res.id}`
+                    });
                     t.alert({
                         message: 'Tweet published',
                         duration: 6,

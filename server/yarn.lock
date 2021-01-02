@@ -389,7 +389,7 @@
   dependencies:
     "es6-promise" "^4.0.3"
 
-"escape-html@~1.0.3":
+"escape-html@^1.0.3", "escape-html@~1.0.3":
   "integrity" "sha1-Aljq5NPQwJdN4cFpGI7wBR0dGYg="
   "resolved" "https://registry.npmjs.org/escape-html/-/escape-html-1.0.3.tgz"
   "version" "1.0.3"
