@@ -36,23 +36,40 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
         return {
             text: `Medium ${m.name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
-                const {code, title} = await fetchTitleAndCode(TARGET_MEDIUM, t)
-                if (!code) {
-                    alert('Error getting content to publish')
-                    return
+                t.alert({
+                    message: 'Publishing...',
+                    duration: 6,
+                });
+                try {
+                    const {code, title} = await fetchTitleAndCode(TARGET_MEDIUM, t)
+                    if (!code) {
+                        alert('Error getting content to publish')
+                        return
+                    }
+                    await fetch('/trello/output-medium/publish', {
+                        method: 'POST',
+                        headers: {
+                            'content-type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            blog: m,
+                            title,
+                            code,
+                        }),
+                    })
+                    t.closePopup()
+                    t.alert({
+                        message: 'Post published as draft',
+                        duration: 6,
+                        display: 'success'
+                    });
+                } catch (e) {
+                    t.alert({
+                        message: 'Post failed :(',
+                        duration: 6,
+                        display: 'error'
+                    });
                 }
-                await fetch('/trello/output-medium/publish', {
-                    method: 'POST',
-                    headers: {
-                        'content-type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        blog: m,
-                        title,
-                        code,
-                    }),
-                })
-                t.closePopup()
             },
         }
     })
@@ -61,8 +78,29 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
 export const Settings = () => {
     const [mediumBlogs, setMediumBlogs] = useState<{[id: string]: MediumBlog}>({});
     const [input, setInput] = useState('');
+    const [error, setError] = useState('')
     useState(async () => setMediumBlogs(await listMediumBlogs()))
+    const addBlog = async () => {
+        try {
+            const req = await fetch('/trello/output-medium/add-blog', {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({token: input}),
+            });
+            const mediumBlog = await req.json()
+            if (!req.ok) {
+                throw mediumBlog
+            }
+            setMediumBlogs(await saveMediumBlog(mediumBlog))
+            setInput('')
+        } catch (e) {
+            setError(e.error ? e.error : 'failed to add blog')
+        }
+    }
     return (<>
+        {error && <p className="error" style={{color: 'red'}}>{error}</p>}
         {Object.values(mediumBlogs).map((m: MediumBlog) => (
             <p key={m.id}>Medium {m.name}<button onClick={async () => {
                 setMediumBlogs(await removeMediumBlog(m))
@@ -71,18 +109,7 @@ export const Settings = () => {
         <p>
             Medium integration token
             <input value={input} onInput={e => setInput((e.target as HTMLInputElement).value)}/>
-            <button onClick={async () => {
-                const req = await fetch('/trello/output-medium/add-blog', {
-                    method: 'POST',
-                    headers: {
-                        'content-type': 'application/json',
-                    },
-                    body: JSON.stringify({token: input}),
-                });
-                const mediumBlog = await req.json()
-                setMediumBlogs(await saveMediumBlog(mediumBlog))
-                setInput('')
-            }}>Add blog</button>
+            <button onClick={addBlog}>Add blog</button>
         </p>
         </>
     )

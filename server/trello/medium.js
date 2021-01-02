@@ -38,7 +38,8 @@ module.exports = function (app) {
             res.json({token, ...profile})
         } catch (e) {
             console.error(e)
-            res.end()
+            res.status(400)
+            res.json({error: 'could not verify token'})
         }
     });
     app.post('/trello/output-medium/publish', async (req, res) => {
@@ -51,7 +52,8 @@ module.exports = function (app) {
             res.json({})
         } catch (e) {
             console.error(e)
-            res.end()
+            res.status(400)
+            res.json({error: 'failed to publish'})
         }
     })
 }
