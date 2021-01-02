@@ -63,10 +63,26 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
                 });
                 const {code} = await fetchTitleAndCode(TARGET_TWITTER, t)
                 if (!code) {
-                    alert('Error getting content to publish')
+                    t.alert({
+                        message: 'Error getting content to publish',
+                        duration: 6,
+                        display: 'error',
+                    })
                     return
                 }
                 const tweets = getTweetsFromCode(code)
+                for (let i = 0; i < tweets.length; i++) {
+                    const text = tweets[i].text
+                    const {valid} = twitter.parseTweet(text)
+                    if (!valid) {
+                        t.alert({
+                            message: `Invalid tweet number ${i+1} :(\n"${text.substr(0, 30)}"...` ,
+                            duration: 10,
+                            display: 'error',
+                        })
+                        return;
+                    }
+                }
                 try {
                     const req = await fetch('/trello/output-twitter/twitter', {
                         method: 'POST',
