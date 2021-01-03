@@ -76,7 +76,10 @@ const Connector = () => {
             'board-buttons': async (t) => {
                 return [
                     {
-                        icon: { dark: '', light: '' },
+                        icon: {
+                            dark: process.env.REACT_APP_BASE_URL + '/schedule.svg',
+                            light: process.env.REACT_APP_BASE_URL + '/schedule.svg',
+                        },
                         text: 'Schedule',
                         condition: 'always',
                         callback: async () => {
@@ -89,7 +92,10 @@ const Connector = () => {
                         }
                     },
                     {
-                        icon: { dark: '', light: '' },
+                        icon: {
+                            dark: process.env.REACT_APP_BASE_URL + '/calendar.svg',
+                            light: process.env.REACT_APP_BASE_URL + '/calendar.svg',
+                        },
                         text: 'Calendar',
                         condition: 'always',
                         callback: async () => {
