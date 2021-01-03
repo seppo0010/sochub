@@ -4,7 +4,6 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import getToken from './RestApi'
-import { Trello } from './types/Trello';
 import './Schedule.css'
 
 
