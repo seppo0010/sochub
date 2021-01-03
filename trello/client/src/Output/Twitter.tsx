@@ -217,12 +217,13 @@ const showTweet = (text: string) => {
                     let attempts = 10
                     let interval = setInterval(() => {
                         const iFrame = e.target as any
-                        iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
-                        iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
-                        window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {});
                         if (attempts-- === 0) {
                             clearInterval(interval)
                         }
+                        if (!iFrame.contentWindow) return
+                        iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
+                        iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
+                        window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {});
                     }, 1000)
                 }}
                 title={url}></iframe>
