@@ -220,7 +220,7 @@ const showTweet = (text: string) => {
                         iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
                         iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
                         window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {});
-                        if (interval-- === 0) {
+                        if (attempts-- === 0) {
                             clearInterval(interval)
                         }
                     }, 1000)
