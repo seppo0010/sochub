@@ -14,15 +14,20 @@ const Schedule = () => {
     });
     const [events, setEvents] = useState<{title: string, start: string}[]>([])
     useState(async () => {
-        const cards = await t.cards('id', 'name', 'badges', 'due', 'cover')
+        const cards = await t.cards('id', 'name', 'badges', 'due', 'cover', 'labels')
         if (cards) {
+            const colors = window.TrelloPowerUp.util.colors;
             setEvents(cards.filter((c) => !!c.due).map((c) => {
                 return {
+                    backgroundColor: colors.getHexString(c.labels.length ? c.labels[0].color : 'blue'),
                     title: c.name || '',
                     start: (c.due || '').substr(0, 10),
                     end: (c.due || '').substr(0, 10),
                     allDay: true,
-                    extendedProps: { id: c.id },
+                    extendedProps: {
+                        id: c.id,
+                        cover: c.cover,
+                    },
                 }
             }))
         }
@@ -33,6 +38,14 @@ const Schedule = () => {
             initialView={t.arg('initialView')}
             events={events}
             editable={true}
+            eventContent={({event}) => {
+                return (
+                    <div>
+                        <p>{event.title}</p>
+                        {event.extendedProps.cover && event.extendedProps.cover.url && <img src={event.extendedProps.cover.url} alt="" />}
+                    </div>
+                )
+            }}
             eventClick={(ec) => {
                 t.showCard(ec.event.extendedProps.id)
             }}

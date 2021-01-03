@@ -1,3 +1,13 @@
 .fc-scroller.fc-scroller-liquid-absolute {
     overflow: hidden !important;
 }
+
+.fc-daygrid .fc-event-main img {
+    max-width: 100%;
+    max-height: 300px;
+}
+
+.fc-listMonth-view .fc-list-event-title img {
+    max-width: 100%;
+    max-height: 300px;
+}

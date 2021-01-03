@@ -181,6 +181,11 @@ export namespace Trello {
         namedColorStringToHex(): string;
       };
 
+      colors: {
+        getHexString(color: string, weight?: number): string;
+        namedColorStringToHex(name: string): string;
+      };
+
       convert: {
         bytesToHexString(): string;
         hexStringToUint8Array(): any;
