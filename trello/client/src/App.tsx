@@ -9,7 +9,6 @@ import {
     Page as GoogleDocsPage,
     Button as GoogleDocsButton,
     buttonShouldDisplay as googleDocsButtonShouldDisplay,
-    AttachmentSection as GoogleDocsAttachmentSection,
     AttachmentPreview as GoogleDocsAttachmentPreview,
     LoginRefresh as GoogleDocsLoginRefresh,
 } from './Input/GoogleDocs';
@@ -69,7 +68,6 @@ const Connector = () => {
             'attachment-sections': async (t, options): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
                 return (await Promise.all([
                     TwitterAttachmentSection,
-                    GoogleDocsAttachmentSection,
                     CanvaAttachmentSection,
                 ].map((x) => x(t, options)))).flat()
             },

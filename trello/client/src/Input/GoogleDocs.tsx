@@ -137,27 +137,6 @@ export const Page = () => {
 }
 
 
-export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
-    entries: Trello.PowerUp.Attachment[];
-}): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
-    const prefix = DOC_PREFIX || '/'
-    return options.entries.filter(function (attachment) {
-        return attachment.url.indexOf(prefix) === 0;
-    }).map((attachment) => { return {
-        id: attachment.url,
-        claimed: [attachment],
-        icon: '',
-        title: () => 'GoogleDoc body',
-        content: {
-          type: 'iframe',
-          url: t.signUrl(DOC_PREFIX + 'preview', {
-            fileId: attachment.url.substr(prefix.length)
-          }),
-          height: 230
-        }
-    } })
-}
-
 export const getContent = async (fileId: string, t?: Trello.PowerUp.IFrame, mimeType: string = 'text/html'): Promise<string> => {
     t = t || window.TrelloPowerUp.iframe();
     return new Promise((resolve, reject) => {
