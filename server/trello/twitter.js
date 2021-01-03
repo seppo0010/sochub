@@ -16,7 +16,7 @@ module.exports = function (app) {
         const url = req.query.url
         try {
             const api = await axios.get(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`, { accept: 'application/json' })
-            res.send(api.data.html)
+            res.send(`<style>html,body{overflow:hidden}</style>${api.data.html}`)
             res.end()
         } catch (e) {
             res.send(`Unable to preview tweet: <a href="${escapeHtml(url)}" target="_blank">${escapeHtml(url)}</a>`)

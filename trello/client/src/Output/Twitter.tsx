@@ -20,6 +20,8 @@ declare interface User {
     profile_image_url: string;
 }
 
+const TWEET_URL_REGEX = /^https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/([0-9]+)$/
+
 const saveUser = async (user: User) => {
     const t = window.TrelloPowerUp.iframe();
     const users = await listUsers(t)
@@ -204,10 +206,36 @@ export const Settings = () => {
 
 const showTweet = (text: string) => {
     const {valid, validRangeEnd} = twitter.parseTweet(text)
+    const urls = twitter.extractUrls(text)
+    let qt = <></>
+    for (let i = urls.length - 1; i >= 0; i--) {
+        const url = urls[i];
+        if (url.match(TWEET_URL_REGEX)) {
+            qt = <iframe src={process.env.REACT_APP_BASE_URL + '/output-twitter/preview-tweet?url=' + encodeURIComponent(url)}
+                onLoad={(e) => {
+                    // I'm sorry!
+                    let attempts = 10
+                    let interval = setInterval(() => {
+                        const iFrame = e.target as any
+                        iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
+                        iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
+                        window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {});
+                        if (interval-- === 0) {
+                            clearInterval(interval)
+                        }
+                    }, 1000)
+                }}
+                title={url}></iframe>
+            if (text.substr(text.length - url.length) === url) {
+                text = text.substr(0, text.length - url.length)
+            }
+        }
+    }
     return <p>
         {valid && <span dangerouslySetInnerHTML={{ __html: twitter.autoLink(twitter.htmlEscape(text)) }}></span>}
         {!valid && text.substr(0, validRangeEnd)}
         {!valid && <span className='error'>{text.substr(validRangeEnd)}</span>}
+        {qt}
     </p>
 }
 export const Preview = ({code}: { code: string }) => {
@@ -254,12 +282,11 @@ export const Preview = ({code}: { code: string }) => {
     </section>
 }
 
-// https://twitter.com/ODIAasoc/status/1343532486035341314
 export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
     entries: Trello.PowerUp.Attachment[];
 }): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
     return await Promise.all(options.entries.filter(function (attachment) {
-        return attachment.url.match(/https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/([0-9]+)/)
+        return attachment.url.match(TWEET_URL_REGEX)
     }).map(async (attachment) => {
         return {
             id: attachment.url,
