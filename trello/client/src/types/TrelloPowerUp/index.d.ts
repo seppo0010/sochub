@@ -306,6 +306,8 @@ export namespace Trello {
 
     // eslint-disable-next-line @typescript-eslint/interface-name-prefix
     export interface IFrameOptions extends LocalizerOptions {
+      appKey?: string;
+      appName?: string;
       context?: string;
       secret?: string;
       helpfulStacks?: boolean;
@@ -323,7 +325,7 @@ export namespace Trello {
       request(command: string, options: any): PromiseLike<any>;
       render(fxRender: () => void): any;
       initApi(): void;
-      getRestApi(): unknown;
+      getRestApi(): any;
       initSentry(): void;
     }
 

@@ -1216,6 +1216,14 @@
     "@fullcalendar/common" "~5.5.0"
     "tslib" "^2.0.3"
 
+"@fullcalendar/interaction@^5.5.0":
+  "integrity" "sha512-LKc4VeESBkBkrI/sAtV++f4qUleYyt7STBrnuc5Mpojv7jg5x5XZ1rfOarLwRbEYSvbo6CwccDrsaLTbC1Qk2A=="
+  "resolved" "https://registry.npmjs.org/@fullcalendar/interaction/-/interaction-5.5.0.tgz"
+  "version" "5.5.0"
+  dependencies:
+    "@fullcalendar/common" "~5.5.0"
+    "tslib" "^2.0.3"
+
 "@fullcalendar/list@^5.5.0":
   "integrity" "sha512-hC+EKrXtnj71rq4gq8vIhb12dlOxu07BuOTzU1kxgB3BdhuO1RiAPm1TCKdYpQjtUTCRT23Ocvs+m/Ei/xh90Q=="
   "resolved" "https://registry.npmjs.org/@fullcalendar/list/-/list-5.5.0.tgz"

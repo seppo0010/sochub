@@ -2,15 +2,21 @@ import React, {useState} from 'react';
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import listPlugin from '@fullcalendar/list';
+import interactionPlugin from '@fullcalendar/interaction';
+import getToken from './RestApi'
+import { Trello } from './types/Trello';
 import './Schedule.css'
 
+
 const Schedule = () => {
-    const t = window.TrelloPowerUp.iframe();
+    const t = window.TrelloPowerUp.iframe({
+        appName: process.env.REACT_APP_TRELLO_APP_NAME,
+        appKey: process.env.REACT_APP_TRELLO_APP_KEY,
+    });
     const [events, setEvents] = useState<{title: string, start: string}[]>([])
     useState(async () => {
         const cards = await t.cards('id', 'name', 'badges', 'due', 'cover')
         if (cards) {
-            console.log(cards)
             setEvents(cards.filter((c) => !!c.due).map((c) => {
                 return {
                     title: c.name || '',
@@ -24,11 +30,21 @@ const Schedule = () => {
     })
     return (
         <FullCalendar
-            plugins={[ dayGridPlugin, listPlugin ]}
+            plugins={[ dayGridPlugin, listPlugin, interactionPlugin ]}
             initialView={t.arg('initialView')}
             events={events}
+            editable={true}
             eventClick={(ec) => {
                 t.showCard(ec.event.extendedProps.id)
+            }}
+            eventDrop={async (ed) => {
+                if (!ed || !ed.event || !ed.event.start) {
+                    return;
+                }
+                const id = ed.event.extendedProps.id
+                const date = ed.event.start.toISOString()
+                window.Trello.setToken(await getToken())
+                window.Trello.put(`/cards/${id}`, {due: date})
             }}
         />
     )

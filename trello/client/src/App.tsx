@@ -165,6 +165,10 @@ const Connector = () => {
                 }
                 return result
             },
+        },
+        {
+            appName: process.env.REACT_APP_TRELLO_APP_NAME,
+            appKey: process.env.REACT_APP_TRELLO_APP_KEY,
         })
     })
     return <></>

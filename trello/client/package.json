@@ -5,6 +5,7 @@
   "homepage": "/trello",
   "dependencies": {
     "@fullcalendar/daygrid": "^5.5.0",
+    "@fullcalendar/interaction": "^5.5.0",
     "@fullcalendar/list": "^5.5.0",
     "@fullcalendar/react": "^5.5.0",
     "@testing-library/jest-dom": "^5.11.4",
