@@ -23,12 +23,16 @@ import {
 } from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
 import Preview from './Preview';
+import Schedule from './Schedule';
 import Settings from './Settings';
 
 function App() {
   return (
     <div className="App">
       <Router>
+        <Route path="/trello/schedule" exact>
+            <Schedule />
+        </Route>
         <Route path="/trello/input-googledocs" exact>
           <GoogleDocsLoginRefresh />
           <GoogleDocsPage />
@@ -62,6 +66,36 @@ const Connector = () => {
                     GoogleDocsAttachmentSection,
                     CanvaAttachmentSection,
                 ].map((x) => x(t, options)))).flat()
+            },
+            'board-buttons': async (t) => {
+                return [
+                    {
+                        icon: { dark: '', light: '' },
+                        text: 'Schedule',
+                        condition: 'always',
+                        callback: async () => {
+                            t.modal({
+                                fullscreen: true,
+                                url: t.signUrl(process.env.REACT_APP_BASE_URL + '/schedule', ),
+                                args: {initialView: 'listMonth'},
+                                title: 'Schedule',
+                            })
+                        }
+                    },
+                    {
+                        icon: { dark: '', light: '' },
+                        text: 'Calendar',
+                        condition: 'always',
+                        callback: async () => {
+                            t.modal({
+                                fullscreen: true,
+                                url: t.signUrl(process.env.REACT_APP_BASE_URL + '/schedule'),
+                                args: {initialView: 'dayGridMonth'},
+                                title: 'Calendar',
+                            })
+                        }
+                    },
+                ]
             },
             'card-back-section': async (t) => {
                 return {
