@@ -168,7 +168,7 @@ declare type Comment = {
 
 const parseCommentsForTarget = (value: string, target: TARGET): Comment => {
     const selectedTargets = value.toLowerCase().split(':')[0].replace(/[^a-z,]+/g, '')
-    let text = value.split(':')[1];
+    let text = value.split(':').slice(1).join(':');
     if (text && text.substr(-3) === '***') {
         text = '\n' + text + '\n'
     }
