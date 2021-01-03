@@ -7,7 +7,9 @@ export const TARGET_MEDIUM = 'medium'
 export type TARGET_MEDIUM = 'medium'
 export const TARGET_INSTAGRAM = 'instagram'
 export type TARGET_INSTAGRAM = 'instagram'
-export type TARGET = TARGET_TWITTER | TARGET_MEDIUM | TARGET_INSTAGRAM
+export const TARGET_TELEGRAM = 'telegram'
+export type TARGET_TELEGRAM = 'telegram'
+export type TARGET = TARGET_TWITTER | TARGET_MEDIUM | TARGET_INSTAGRAM | TARGET_TELEGRAM
 
 
 export const fetchTitleAndCode = async (target: TARGET, t?: Trello.PowerUp.IFrame) => {
@@ -20,6 +22,7 @@ export const fetchTitleAndCode = async (target: TARGET, t?: Trello.PowerUp.IFram
 }
 export const getCode = async (desc: string, target: TARGET, attachments: {url: string}[], t?: Trello.PowerUp.IFrame) => {
     t = t || window.TrelloPowerUp.iframe();
+    console.log(target)
     const prefix = DOC_PREFIX
     const att = attachments.find(
             (attachment) => attachment.url.indexOf(prefix) === 0)

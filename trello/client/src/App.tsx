@@ -22,6 +22,7 @@ import {
     AttachmentSection as TwitterAttachmentSection
 } from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
+import { publishItems as telegramPublishItems } from './Output/Telegram'
 import Preview from './Preview';
 import Schedule from './Schedule';
 import Settings from './Settings';
@@ -109,6 +110,7 @@ const Connector = () => {
                                 items: (await Promise.all([
                                     twitterPublishItems(t),
                                     mediumPublishItems(t),
+                                    telegramPublishItems(t),
                                 ])).flat()
                             })
                         },
@@ -132,7 +134,7 @@ const Connector = () => {
                 return t.modal({
                     title: 'Settings',
                     url: './settings',
-                    height: 600,
+                    height: 800,
                 });
             },
             'card-badges': async (t: Trello.PowerUp.IFrame): Promise<Trello.PowerUp.CardBadge[]> => {

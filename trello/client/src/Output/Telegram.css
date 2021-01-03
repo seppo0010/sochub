@@ -1,0 +1,26 @@
+div.telegramPreview {
+    display: flex;
+    padding: 10px;
+}
+div.telegramPreview img.avatar {
+    width: 40px;
+    height: 40px;
+    vertical-align: bottom;
+    border-radius: 50%;
+    margin-top: auto;
+}
+div.telegramPreview div.message {
+    min-width: 100px;
+    border-radius: 10px;
+    background: white;
+    padding: 8px;
+    position: relative;
+    margin: 0 10px;
+}
+div.telegramPreview div.message div.time {
+    position: absolute;
+    bottom: 4px;
+    right: 14px;
+    color: #aaa;
+    font-size: 12px;
+}

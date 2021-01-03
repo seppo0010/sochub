@@ -1,7 +1,7 @@
 import { Trello } from '../types/TrelloPowerUp';
 import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
-import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM } from './index'
+import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM, TARGET_TELEGRAM } from './index'
 import escapeHtml from 'escape-html'
 
 export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
@@ -280,12 +280,12 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
             if (node.tagName === 'SPAN' && id && klass) {
                 if (klass === 'comment-start') {
                     inComment.push(id)
-                     return false
+                    return false
                 }
                 if (klass === 'comment-end') {
                     const index = inComment.indexOf(id)
                     if (index !== -1) {
-                      inComment.splice(index, 1)
+                        inComment.splice(index, 1)
                     }
                     return false
                 }
@@ -296,12 +296,14 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
             node, null, XPathResult.NUMBER_TYPE, null).numberValue > 0
     })
 
-    let value = (root as any)[{
+    const format = {
         [TARGET_TWITTER]: 'textContent',
         [TARGET_MEDIUM]: 'innerHTML',
+        [TARGET_TELEGRAM]: 'innerHTML',
         [TARGET_INSTAGRAM]: 'textContent',
-    }[target]]
-    if (target === TARGET_MEDIUM) {
+    }[target]
+    let value = (root as any)[format]
+    if (format === 'innerHTML') {
         value = value.replace(/!\[(.*?)\]\((.*?)\)/g, (match: any, alt: string, url: string) => {
             return `<img src="${escapeHtml(encodeURI(url))}" alt="${escapeHtml(alt)}" />`
         })

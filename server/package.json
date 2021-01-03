@@ -21,6 +21,7 @@
     "googleapis": "^39.2.0",
     "login-with-twitter": "^1.2.4",
     "node-fetch": "^2.6.1",
+    "node-telegram-bot-api": "^0.51.0",
     "sqlite3": "^5.0.0",
     "trello-node-api": "^0.0.9",
     "twitter": "^1.7.1"

@@ -3,6 +3,7 @@ import { Settings as GoogleDocs } from './Input/GoogleDocs'
 import { Settings as Twitter } from './Output/Twitter'
 import { Settings as Medium } from './Output/Medium'
 import { Settings as Instagram } from './Output/Instagram'
+import { Settings as Telegram } from './Output/Telegram'
 
 const Settings = () => {
     return (
@@ -12,6 +13,7 @@ const Settings = () => {
             <Twitter />
             <Medium />
             <Instagram />
+            <Telegram />
         </div>
     )
 }
