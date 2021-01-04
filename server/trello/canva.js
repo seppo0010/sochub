@@ -84,7 +84,7 @@ module.exports = function (app) {
     app.post('/trello/input-canva/publish/resources/find', async (request, response) => {
         const token = await getUserToken(request.body.user)
         if (!token) {
-            res.send(401);
+            response.send(401);
             return;
         }
         const Trello = new TrelloNodeAPI();
@@ -137,7 +137,7 @@ module.exports = function (app) {
     app.post('/trello/input-canva/publish/resources/get', async (request, response) => {
         const token = await getUserToken(request.body.user)
         if (!token) {
-            res.send(401);
+            response.send(401);
             return;
         }
         const Trello = new TrelloNodeAPI();
@@ -161,7 +161,7 @@ module.exports = function (app) {
     app.post('/trello/input-canva/publish/resources/upload', async (request, response) => {
         const token = await getUserToken(request.body.user)
         if (!token) {
-            res.send(401);
+            response.send(401);
             return;
         }
         const path = JSON.parse(request.body.parent)
