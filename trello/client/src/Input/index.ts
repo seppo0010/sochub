@@ -32,5 +32,8 @@ export const getCode = async (desc: string, target: TARGET, attachments: {url: s
     } else {
         text = desc;
     }
+    if (text && target !== TARGET_TWITTER) {
+        text = text.replace(/\n\*{3}\n/, '\n')
+    }
     return text;
 }
