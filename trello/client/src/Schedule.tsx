@@ -14,13 +14,20 @@ const Schedule = () => {
     });
     const [events, setEvents] = useState<{title: string, start: string}[]>([])
     useState(async () => {
-        const cards = await t.cards('id', 'name', 'badges', 'due', 'cover', 'labels')
+        const [lists, cards] = await Promise.all([
+            t.lists('id', 'name'),
+            t.cards('id', 'name', 'badges', 'due', 'cover', 'labels', 'idList'),
+        ])
         if (cards) {
+            const listsMap: {[id: string]: string} = {}
+            if (lists) {
+                lists.forEach((l) => { listsMap[l.id] = l.name })
+            }
             const colors = window.TrelloPowerUp.util.colors;
             setEvents(cards.filter((c) => !!c.due).map((c) => {
                 return {
                     backgroundColor: colors.getHexString(c.labels.length ? c.labels[0].color : 'blue'),
-                    title: c.name || '',
+                    title: (c.name || '') + (listsMap[c.idList] ? ` [${listsMap[c.idList]}]` : ''),
                     start: (c.due || '').substr(0, 10),
                     end: (c.due || '').substr(0, 10),
                     allDay: true,
