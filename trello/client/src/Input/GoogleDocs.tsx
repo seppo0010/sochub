@@ -54,7 +54,6 @@ export const Settings = () => {
                 )}
                 onLogoutSuccess={() => setUser(undefined) }
                 onFailure={() => setUser(undefined) }
-                scope={scope}
                 />}
         </p>
     )
