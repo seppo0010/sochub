@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import ReactMarkdown from 'react-markdown'
 import {
   BrowserRouter as Router,
   Route,
@@ -31,10 +32,28 @@ import Preview from './Preview';
 import Schedule from './Schedule';
 import Settings from './Settings';
 
+const MarkdownURL = ({url}: {url: string}) => {
+    const [data, setData] = useState('')
+    useState(async () => {
+        const req = await fetch(process.env.REACT_APP_BASE_URL  + url)
+        const text = await req.text()
+        setData(text)
+    })
+    return <ReactMarkdown>{data}</ReactMarkdown>
+}
 function App() {
   return (
     <div className="App">
       <Router>
+        <Route path="/" exact>
+            <MarkdownURL url='/README.md' />
+        </Route>
+        <Route path="/terms" exact>
+            <MarkdownURL url='/LICENSE' />
+        </Route>
+        <Route path="/privacy" exact>
+            <MarkdownURL url='/PRIVACY.md' />
+        </Route>
         <Route path="/trello/schedule" exact>
             <Schedule />
         </Route>

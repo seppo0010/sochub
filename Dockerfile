@@ -1,6 +1,8 @@
 FROM node:15 AS ui-build
 WORKDIR /usr/src/app
 COPY trello/client/ ./trello-client/
+COPY documentation/ ./trello-client/public/documentation/
+COPY LICENSE PRIVACY.md README.md trello-client/public/
 RUN cd trello-client && npm install && npm run build
 
 FROM node:15 AS server-build
