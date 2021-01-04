@@ -10,6 +10,13 @@ const bodyParser = require('body-parser')
 const app = express();
 
 app.use(compression());
+app.use(
+  express.json({
+    verify: (request, response, buffer) => {
+      request.rawBody = buffer.toString();
+    },
+  }),
+);
 app.use(express.json())
 app.use(express.static('public'));
 app.use(bodyParser.raw({ type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }))

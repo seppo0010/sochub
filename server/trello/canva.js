@@ -2,21 +2,62 @@ const sqlite3 = require('sqlite3');
 const TrelloNodeAPI = require('trello-node-api')
 const TrelloResource = require('trello-node-api/lib/TrelloResource'); // ugly
 const trelloMethod = TrelloResource.method;
+const { createHmac } = require('crypto');
 
 const db = new sqlite3.Database('./trello.db');
 
 db.run("CREATE TABLE IF NOT EXISTS users_token (user VARCHAR(255) PRIMARY KEY, token VARCHAR(255))");
 
-function isValidTimestamp(
+const isValidPostRequest = (request) => {
+  const sentAtSeconds = request.header('X-Canva-Timestamp');
+  const receivedAtSeconds = new Date().getTime() / 1000;
+  if (!isValidTimestamp(sentAtSeconds, receivedAtSeconds)) {
+    return false;
+  }
+  const version = 'v1';
+  const timestamp = request.header('X-Canva-Timestamp');
+  const path = request.path.substr('/trello/input-canva'.length);
+  const body = request.rawBody;
+  const message = `${version}:${timestamp}:${path}:${body}`;
+  const signature = calculateSignature(message);
+  if (!request.header('X-Canva-Signatures').includes(signature)) {
+    return false;
+  }
+  return true;
+};
+
+const isValidGetRequest = (request) => {
+  const sentAtSeconds = request.query.time;
+  const receivedAtSeconds = new Date().getTime() / 1000;
+  if (!isValidTimestamp(sentAtSeconds, receivedAtSeconds)) {
+    return false;
+  }
+  const version = 'v1';
+  const { time, user, brand, extensions, state } = request.query;
+  const message = `${version}:${time}:${user}:${brand}:${extensions}:${state}`;
+  const signature = calculateSignature(message);
+  if (!request.query.signatures.includes(signature)) {
+    return false;
+  }
+  return true;
+};
+
+const isValidTimestamp = (
   sentAtSeconds,
   receivedAtSeconds,
   leniencyInSeconds = 300,
-) {
+) => {
   return (
     Math.abs(Number(sentAtSeconds) - Number(receivedAtSeconds)) <
     Number(leniencyInSeconds)
   );
-}
+};
+
+const calculateSignature = (message) => {
+  const secret = process.env.CANVA_CLIENT_SECRET
+  const key = Buffer.from(secret, 'base64');
+  return createHmac('sha256', key).update(message).digest('hex');
+};
 
 module.exports = function (app) {
     app.get('/trello/input-canva/trello-return', async (request, response) => {
@@ -39,24 +80,11 @@ module.exports = function (app) {
                 `&state=${request.query.state}`)
     });
     app.get('/trello/input-canva/redirect', async (request, response) => {
-        const sentAtSeconds = request.query.time;
-        const receivedAtSeconds = new Date().getTime() / 1000;
-        if (!isValidTimestamp(sentAtSeconds, receivedAtSeconds)) {
+        if (!isValidGetRequest(request)) {
           response.sendStatus(401);
           return;
         }
         const base_url = process.env.SOCHUB_BASE_URL;
-        const secret = process.env.CANVA_CLIENT_SECRET;
-        const key = Buffer.from(secret, 'base64');
-        const version = 'v1';
-        const { time, user, brand, extensions, state } = request.query;
-        const message = `${version}:${time}:${user}:${brand}:${extensions}:${state}`;
-        const { createHmac } = require('crypto');
-        const signature = createHmac('sha256', key).update(message).digest('hex');
-        if (!request.query.signatures.includes(signature)) {
-          response.sendStatus(401);
-          return;
-        }
         response.redirect('https://trello.com/1/authorize?'+
                 'expiration=never&name=sochub&response_type=token' +
                 `&callback_method=fragment&key=${process.env.TRELLO_API_KEY}` +
@@ -66,6 +94,10 @@ module.exports = function (app) {
                 '')
     })
     app.post('/trello/input-canva/configuration', async (request, response) => {
+        if (!isValidPostRequest(request)) {
+          response.sendStatus(401);
+          return;
+        }
         response.json({
             "type": "ERROR",
             "errorCode": "CONFIGURATION_REQUIRED"
@@ -82,9 +114,13 @@ module.exports = function (app) {
         return obj && obj.token
     }
     app.post('/trello/input-canva/publish/resources/find', async (request, response) => {
+        if (!isValidPostRequest(request)) {
+          response.sendStatus(401);
+          return;
+        }
         const token = await getUserToken(request.body.user)
         if (!token) {
-            response.send(401);
+            response.sendStatus(401);
             return;
         }
         const Trello = new TrelloNodeAPI();
@@ -135,9 +171,13 @@ module.exports = function (app) {
         }
     });
     app.post('/trello/input-canva/publish/resources/get', async (request, response) => {
+        if (!isValidPostRequest(request)) {
+          response.sendStatus(401);
+          return;
+        }
         const token = await getUserToken(request.body.user)
         if (!token) {
-            response.send(401);
+            response.sendStatus(401);
             return;
         }
         const Trello = new TrelloNodeAPI();
@@ -159,9 +199,13 @@ module.exports = function (app) {
         })
     });
     app.post('/trello/input-canva/publish/resources/upload', async (request, response) => {
+        if (!isValidPostRequest(request)) {
+          response.sendStatus(401);
+          return;
+        }
         const token = await getUserToken(request.body.user)
         if (!token) {
-            response.send(401);
+            response.sendStatus(401);
             return;
         }
         const path = JSON.parse(request.body.parent)
