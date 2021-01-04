@@ -5,6 +5,7 @@ import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM, TARGET_TELEGRA
 import escapeHtml from 'escape-html'
 
 export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
+const scope = 'profile email https://www.googleapis.com/auth/drive'
 
 const saveSecret = (user: any) => {
     const t = window.TrelloPowerUp.iframe();
@@ -20,6 +21,7 @@ export const LoginRefresh = () => {
         render={() => <></>}
         onSuccess={saveSecret}
         isSignedIn={true}
+        scope={scope}
         />
 }
 
@@ -43,7 +45,7 @@ export const Settings = () => {
                 }}
                 isSignedIn={true}
                 cookiePolicy={'single_host_origin'}
-                scope="https://www.googleapis.com/auth/drive.file"
+                scope={scope}
                 />}
             {!!user && <GoogleLogout
                 clientId={process.env.REACT_APP_GOOGLE_DOCS_CLIENT_ID || ''}
@@ -52,6 +54,7 @@ export const Settings = () => {
                 )}
                 onLogoutSuccess={() => setUser(undefined) }
                 onFailure={() => setUser(undefined) }
+                scope={scope}
                 />}
         </p>
     )
