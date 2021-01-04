@@ -5,25 +5,26 @@ import { TARGET_TELEGRAM, fetchTitleAndCode } from '../Input'
 
 declare interface TelegramBotChannel {
     id: string;
-    botToken: string;
     botFirstName: string;
     botImageURL: string | null;
     channel: string;
 }
 
-const saveTelegramBotChannel = async (telegramBotChannel: TelegramBotChannel) => {
+const saveTelegramBotChannel = async (tbc: TelegramBotChannel, token: string) => {
     const t = window.TrelloPowerUp.iframe();
+    await t.storeSecret('Telegram_telegramBotChannels_' + tbc.id, token)
     const telegramBotChannels = await listTelegramBotChannels(t)
-    telegramBotChannels[telegramBotChannel.id] = telegramBotChannel
-    await t.storeSecret('Telegram_telegramBotChannels', JSON.stringify(telegramBotChannels))
+    telegramBotChannels[tbc.id] = tbc
+    await t.set('board', 'shared', 'Telegram_telegramBotChannels', JSON.stringify(telegramBotChannels))
     return telegramBotChannels
 }
 
-const removeTelegramBotChannel = async (telegramBotChannel: TelegramBotChannel) => {
+const removeTelegramBotChannel = async (tbc: TelegramBotChannel) => {
     const t = window.TrelloPowerUp.iframe();
+    await t.clearSecret('Telegram_telegramBotChannels_' + tbc.id)
     const telegramBotChannels = await listTelegramBotChannels(t)
-    delete telegramBotChannels[telegramBotChannel.id]
-    await t.storeSecret('Telegram_telegramBotChannels', JSON.stringify(telegramBotChannels))
+    delete telegramBotChannels[tbc.id]
+    await t.set('board', 'shared', 'Telegram_telegramBotChannels', JSON.stringify(telegramBotChannels))
     return telegramBotChannels
 }
 
@@ -58,8 +59,7 @@ const cleanCode = (text: string) => {
 
 const listTelegramBotChannels = async (t?: Trello.PowerUp.IFrame): Promise<{[id: string]: TelegramBotChannel}> => {
     t = t || window.TrelloPowerUp.iframe();
-    const telegramBotChannels = JSON.parse((await t.loadSecret('Telegram_telegramBotChannels')) || '{}')
-    return telegramBotChannels
+    return JSON.parse((await t.get('board', 'shared', 'Telegram_telegramBotChannels')) || '{}')
 }
 
 const updatePreviewAccount = async (botChannel?: TelegramBotChannel) => {
@@ -85,6 +85,17 @@ export const publishItems = async (t: Trello.PowerUp.IFrame) => {
                     message: 'Publishing...',
                     duration: 6,
                 });
+                let botToken;
+                try {
+                    botToken = await t.loadSecret('Telegram_telegramBotChannels_' + b.id)
+                } catch (e) {
+                    t.alert({
+                        message: 'Failed to get token, please add it again in settings',
+                        duration: 6,
+                        display: 'error'
+                    });
+                    return
+                }
                 try {
                     const {code} = await fetchTitleAndCode(TARGET_TELEGRAM, t)
                     if (!code) {
@@ -98,6 +109,7 @@ export const publishItems = async (t: Trello.PowerUp.IFrame) => {
                         },
                         body: JSON.stringify({
                             botChannel: b,
+                            botToken,
                             code: cleanCode(code),
                         }),
                     })
@@ -129,18 +141,19 @@ export const Settings = () => {
     useState(async () => setTelegramBotChannels(await listTelegramBotChannels()))
     const addBot = async () => {
         try {
+            const token = inputBotToken
             const req = await fetch('/trello/output-telegram/add-bot', {
                 method: 'POST',
                 headers: {
                     'content-type': 'application/json',
                 },
-                body: JSON.stringify({botToken: inputBotToken, channel: inputChannel}),
+                body: JSON.stringify({botToken: token, channel: inputChannel}),
             });
-            const telegramBotChannel = await req.json()
+            const tbc = await req.json()
             if (!req.ok) {
-                throw telegramBotChannel
+                throw tbc
             }
-            setTelegramBotChannels(await saveTelegramBotChannel(telegramBotChannel))
+            setTelegramBotChannels(await saveTelegramBotChannel(tbc, token))
             setInputBotToken('')
             setInputChannel('')
         } catch (e) {
@@ -185,7 +198,6 @@ export const Preview = ({code}: { code: string }) => {
     window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_TELEGRAM, !!code)
     const [user, setUser] = useState<TelegramBotChannel>({
         id: '',
-        botToken: '',
         botFirstName: 'myBot',
         botImageURL: process.env.REACT_APP_BASE_URL + '/telegram_default.png',
         channel: 'mychannel',

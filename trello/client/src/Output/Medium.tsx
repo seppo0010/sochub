@@ -6,29 +6,29 @@ import './Medium.css'
 declare interface MediumBlog {
     id: string;
     name: string;
-    token: string;
 }
 
-const saveMediumBlog = async (mediumBlog: MediumBlog) => {
+const saveMediumBlog = async (mediumBlog: MediumBlog, token: string) => {
     const t = window.TrelloPowerUp.iframe();
+    await t.storeSecret('Medium_mediumBlog_' + mediumBlog.id, token)
     const mediumBlogs = await listMediumBlogs(t)
     mediumBlogs[mediumBlog.id] = mediumBlog
-    await t.storeSecret('Medium_mediumBlogs', JSON.stringify(mediumBlogs))
+    await t.set('board', 'shared', 'Medium_mediumBlogs', JSON.stringify(mediumBlogs))
     return mediumBlogs
 }
 
 const removeMediumBlog = async (mediumBlog: MediumBlog) => {
     const t = window.TrelloPowerUp.iframe();
+    await t.clearSecret('Medium_mediumBlog_' + mediumBlog.id)
     const mediumBlogs = await listMediumBlogs(t)
     delete mediumBlogs[mediumBlog.id]
-    await t.storeSecret('Medium_mediumBlogs', JSON.stringify(mediumBlogs))
+    await t.set('board', 'shared', 'Medium_mediumBlogs', JSON.stringify(mediumBlogs))
     return mediumBlogs
 }
 
 const listMediumBlogs = async (t?: Trello.PowerUp.IFrame): Promise<{[id: string]: MediumBlog}> => {
     t = t || window.TrelloPowerUp.iframe();
-    const mediumBlogs = JSON.parse((await t.loadSecret('Medium_mediumBlogs')) || '{}')
-    return mediumBlogs
+    return JSON.parse((await t.get('board', 'shared', 'Medium_mediumBlogs')) || '{}')
 }
 
 export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
@@ -40,6 +40,17 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
                     message: 'Publishing...',
                     duration: 6,
                 });
+                let token;
+                try {
+                    token = await t.loadSecret('Medium_mediumBlog_' + m.id)
+                } catch (e) {
+                    t.alert({
+                        message: 'Failed to get token, please add it again in settings',
+                        duration: 6,
+                        display: 'error'
+                    });
+                    return
+                }
                 try {
                     const {code, title} = await fetchTitleAndCode(TARGET_MEDIUM, t)
                     if (!code) {
@@ -52,7 +63,7 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
                             'content-type': 'application/json',
                         },
                         body: JSON.stringify({
-                            blog: m,
+                            token,
                             title,
                             code,
                         }),
@@ -86,19 +97,20 @@ export const Settings = () => {
     const [error, setError] = useState('')
     useState(async () => setMediumBlogs(await listMediumBlogs()))
     const addBlog = async () => {
+        const token = input;
         try {
             const req = await fetch('/trello/output-medium/add-blog', {
                 method: 'POST',
                 headers: {
                     'content-type': 'application/json',
                 },
-                body: JSON.stringify({token: input}),
+                body: JSON.stringify({token}),
             });
             const mediumBlog = await req.json()
             if (!req.ok) {
                 throw mediumBlog
             }
-            setMediumBlogs(await saveMediumBlog(mediumBlog))
+            setMediumBlogs(await saveMediumBlog(mediumBlog, token))
             setInput('')
         } catch (e) {
             setError(e.error ? e.error : 'failed to add blog')

@@ -10,38 +10,41 @@ declare global {
     }
 }
 
-declare interface User {
-    userId: string;
-    userName: string;
+declare interface UserToken {
     userToken: string;
     userTokenSecret: string;
-    screen_name: string;
+}
+
+declare interface User {
+    id_str: string;
     name: string;
+    screen_name: string;
     profile_image_url: string;
 }
 
 const TWEET_URL_REGEX = /^https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/([0-9]+)$/
 
-const saveUser = async (user: User) => {
+const saveUser = async (user: User, token: UserToken) => {
     const t = window.TrelloPowerUp.iframe();
+    await t.storeSecret('Twitter_user_' + user.id_str, JSON.stringify(token))
     const users = await listUsers(t)
-    users[user.userId] = user
-    await t.storeSecret('Twitter_users', JSON.stringify(users))
+    users[user.id_str] = user
+    await t.set('board', 'shared', 'Twitter_users', JSON.stringify(users))
     return users
 }
 
 const removeUser = async (user: User) => {
     const t = window.TrelloPowerUp.iframe();
+    await t.clearSecret('Twitter_user_' + user.id_str)
     const users = await listUsers(t)
-    delete users[user.userId]
-    await t.storeSecret('Twitter_users', JSON.stringify(users))
+    delete users[user.id_str]
+    await t.set('board', 'shared', 'Twitter_users', JSON.stringify(users))
     return users
 }
 
 const listUsers = async (t?: Trello.PowerUp.IFrame): Promise<{[id: string]: User}> => {
     t = t || window.TrelloPowerUp.iframe();
-    const users = JSON.parse((await t.loadSecret('Twitter_users')) || '{}')
-    return users
+    return JSON.parse((await t.get('board', 'shared', 'Twitter_users')) || '{}')
 }
 
 const getTweetsFromCode = (code: string) => {
@@ -60,12 +63,23 @@ const getTweetsFromCode = (code: string) => {
 export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
     return Object.values(await listUsers(t)).map((u) => {
         return {
-            text: `Twitter ${u.userName}`,
+            text: `Twitter ${u.screen_name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
                 t.alert({
                     message: 'Publishing...',
                     duration: 6,
                 });
+                let token;
+                try {
+                    token = JSON.parse(await t.loadSecret('Twitter_user_' + u.id_str))
+                } catch (e) {
+                    t.alert({
+                        message: 'Failed to get token, please add log in again in settings',
+                        duration: 6,
+                        display: 'error'
+                    });
+                    return
+                }
                 const {code} = await fetchTitleAndCode(TARGET_TWITTER, t)
                 if (!code) {
                     t.alert({
@@ -95,7 +109,7 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
                             'content-type': 'application/json',
                         },
                         body: JSON.stringify({
-                            from: u,
+                            from: token,
                             tweets,
                         }),
                     })
@@ -105,7 +119,7 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
                     }
                     t.attach({
                         name: 'Tweet',
-                        url: `https://twitter.com/${u.userName}/status/${res.id}`
+                        url: `https://twitter.com/${u.screen_name}/status/${res.id}`
                     });
                     t.alert({
                         message: 'Tweet published',
@@ -147,20 +161,20 @@ export const Settings = () => {
     useState(async () => {
         const pAccount = await getPreviewAccount()
         if (pAccount) {
-            setPreviewAccount(pAccount.userId)
+            setPreviewAccount(pAccount.id_str)
         }
     })
     useState(async () => setUsers(await listUsers()))
     return (<>
         {Object.values(users).map((u: User) => (
-            <p key={u.userId}>
-                Twitter {u.userName}
-                {previewAccount === u.userId && <button onClick={async () => {
+            <p key={u.id_str}>
+                Twitter {u.screen_name}
+                {previewAccount === u.id_str && <button onClick={async () => {
                     setPreviewAccount('')
                     updatePreviewAccount()
                 }}>Unset as preview account</button>}
-                {previewAccount !== u.userId && <button onClick={async () => {
-                    setPreviewAccount(u.userId)
+                {previewAccount !== u.id_str && <button onClick={async () => {
+                    setPreviewAccount(u.id_str)
                     updatePreviewAccount(u)
                 }}>Set as preview account</button>}
                 <button onClick={async () => {
@@ -192,8 +206,8 @@ export const Settings = () => {
                             tokenSecret: tokenSecret,
                         }),
                     })
-                    const user = await req.json()
-                    setUsers(await saveUser(user))
+                    const {user, token} = await req.json()
+                    setUsers(await saveUser(user, token))
                     if (myWindow) {
                         myWindow.close()
                     }

@@ -72,7 +72,11 @@ export const Button = {
 
 const loggedInToken = async (t?: Trello.PowerUp.IFrame) => {
     t = t || window.TrelloPowerUp.iframe();
-    return await t.loadSecret('GoogleDocs_userToken')
+    try {
+        return await t.loadSecret('GoogleDocs_userToken')
+    } catch (e) {
+        return null
+    }
 }
 
 export const isLoggedIn = async (t: Trello.PowerUp.IFrame) => {
@@ -144,6 +148,10 @@ export const getContent = async (fileId: string, t?: Trello.PowerUp.IFrame, mime
     return new Promise((resolve, reject) => {
         gapi.load('client:auth2', async () => {
             const oauthToken = await loggedInToken(t)
+            if (!oauthToken) {
+                reject('not logged in')
+                return;
+            }
             gapi.client.init({
                 apiKey: process.env.REACT_APP_GOOGLE_DOCS_API_KEY,
                 clientId: process.env.REACT_APP_GOOGLE_DOCS_CLIENT_ID,

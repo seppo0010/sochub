@@ -35,7 +35,7 @@ module.exports = function (app) {
         const { token } = req.body
         try {
             const profile = await new Medium(token).getProfile()
-            res.json({token, ...profile})
+            res.json(profile)
         } catch (e) {
             console.error(e)
             res.status(400)
@@ -43,7 +43,7 @@ module.exports = function (app) {
         }
     });
     app.post('/trello/output-medium/publish', async (req, res) => {
-        const {blog: {token}, code, title} = req.body;
+        const {token, code, title} = req.body;
         try {
             const api = await (new Medium(token)).addPost(title, code, {
                 contentFormat: 'html',

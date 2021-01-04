@@ -34,7 +34,7 @@ module.exports = function (app) {
         twitterLogin.callback({
             oauth_token: oauthToken,
             oauth_verifier: oauthVerifier
-        }, tokenSecret, (err, user) => {
+        }, tokenSecret, (err, token) => {
             if (err) {
                 console.error(err);
                 res.sendStatus(500);
@@ -44,15 +44,15 @@ module.exports = function (app) {
             const client = new Twitter({
                 consumer_key: process.env.TWITTER_CONSUMER_KEY,
                 consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-                access_token_key: user.userToken,
-                access_token_secret: user.userTokenSecret,
+                access_token_key: token.userToken,
+                access_token_secret: token.userTokenSecret,
             });
-            client.get('users/show', {user_id: user.userId}, (error, data, response) => {
+            client.get('users/show', {user_id: token.userId}, (error, user, response) => {
                 if (error) {
                     console.error(error);
                     res.status(400)
                 } else {
-                    res.json({...user, ...data})
+                    res.json({token, user})
                 }
             })
         });

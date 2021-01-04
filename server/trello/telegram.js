@@ -32,7 +32,6 @@ module.exports = function (app) {
             }
             res.json({
                 id,
-                botToken,
                 botUsername: me.odiaasocbot,
                 botFirstName: me.first_name,
                 botImageURL,
@@ -45,8 +44,8 @@ module.exports = function (app) {
         }
     });
     app.post('/trello/output-telegram/publish', async (req, res) => {
-        const {botChannel, code} = req.body;
-        const bot = new TelegramBot(botChannel.botToken)
+        const {botChannel, botToken, code} = req.body;
+        const bot = new TelegramBot(botToken)
         try {
             bot.sendMessage(botChannel.channel, code, {
                 parse_mode: 'html',

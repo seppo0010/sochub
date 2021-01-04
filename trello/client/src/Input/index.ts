@@ -22,7 +22,6 @@ export const fetchTitleAndCode = async (target: TARGET, t?: Trello.PowerUp.IFram
 }
 export const getCode = async (desc: string, target: TARGET, attachments: {url: string}[], t?: Trello.PowerUp.IFrame) => {
     t = t || window.TrelloPowerUp.iframe();
-    console.log(target)
     const prefix = DOC_PREFIX
     const att = attachments.find(
             (attachment) => attachment.url.indexOf(prefix) === 0)
