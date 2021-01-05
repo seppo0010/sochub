@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trello } from '../types/TrelloPowerUp';
-import { TARGET_MEDIUM, fetchTitleAndCode } from '../Input'
+import { TARGET_MEDIUM, fetchInputForTarget } from '../Input'
 import './Medium.css'
 
 declare interface MediumBlog {
@@ -52,7 +52,7 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
                     return
                 }
                 try {
-                    const {code, title} = await fetchTitleAndCode(TARGET_MEDIUM, t)
+                    const {code, title, tags} = await fetchInputForTarget(TARGET_MEDIUM, t)
                     if (!code) {
                         alert('Error getting content to publish')
                         return
@@ -66,6 +66,7 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
                             token,
                             title,
                             code,
+                            tags,
                         }),
                     })
                     const j = await res.json();
@@ -132,7 +133,7 @@ export const Settings = () => {
     )
 }
 
-export const Preview = ({title, code}: { title: string, code: string }) => {
+export const Preview = ({input: {title, code, tags}}: {input: { title?: string, code: string, tags: string[] } }) => {
     window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_MEDIUM, !!title && !!code)
     if (!code) {
         return <p style={{padding: 20}}>No output for Medium</p>
@@ -140,5 +141,10 @@ export const Preview = ({title, code}: { title: string, code: string }) => {
     return <div className="preview">
         <h2>{title}</h2>
         <div dangerouslySetInnerHTML={{ __html: code}}></div>
+        {tags.length && (<ul className="tags">
+            {tags.map((t) => (
+                <li key={t}>{t}</li>
+            ))}
+        </ul>)}
     </div>
 }

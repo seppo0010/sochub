@@ -12,3 +12,18 @@ div.preview {
 div.preview img {
     max-width: 100%;
 }
+
+div.preview ul.tags {
+    display: flex;
+}
+div.preview ul.tags li {
+    display: block;
+    padding: 5px 10px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.075);
+    margin-right: 8px;
+    font-size: 13px;
+    line-height: 22px;
+    font-family: sohne, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 400;
+}

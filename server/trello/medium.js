@@ -43,11 +43,12 @@ module.exports = function (app) {
         }
     });
     app.post('/trello/output-medium/publish', async (req, res) => {
-        const {token, code, title} = req.body;
+        const {token, code, title, tags} = req.body;
         try {
             const api = await (new Medium(token)).addPost(title, code, {
                 contentFormat: 'html',
                 publishStatus: 'draft',
+                tags,
             })
             res.json(api.data.data)
         } catch (e) {

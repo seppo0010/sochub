@@ -4,7 +4,8 @@ import {
     TARGET_MEDIUM,
     TARGET_INSTAGRAM,
     TARGET_TELEGRAM,
-    getCode,
+    getInputForTarget,
+    InputForTarget,
 } from './Input'
 import { Preview as TwitterPreview } from './Output/Twitter'
 import { Preview as MediumPreview } from './Output/Medium'
@@ -12,28 +13,27 @@ import { Preview as InstagramPreview } from './Output/Instagram'
 import { Preview as TelegramPreview } from './Output/Telegram'
 
 export default function Preview() {
+    const defaultInput: InputForTarget = {title: '', code: '', tags: [], target: TARGET_TWITTER};
     const [displayPreview, setDisplayPreview] = useState(TARGET_TWITTER)
     const [loaded, setLoaded] = useState(false)
-    const [twitterCode, setTwitterCode] = useState('')
-    const [mediumCode, setMediumCode] = useState('')
-    const [telegramCode, setTelegramCode] = useState('')
-    const [instagramCode, setInstagramCode] = useState('')
-    const [title, setTitle] = useState('')
+    const [twitterInput, setTwitterInput] = useState({...defaultInput, target: TARGET_TWITTER})
+    const [mediumInput, setMediumInput] = useState({...defaultInput, target: TARGET_MEDIUM})
+    const [telegramInput, setTelegramInput] = useState({...defaultInput, target: TARGET_TELEGRAM})
+    const [instagramInput, setInstagramInput] = useState({...defaultInput, target: TARGET_INSTAGRAM})
     useState(async () => {
         const t = window.TrelloPowerUp.iframe();
-        const card = await t.card('name', 'desc', 'attachments')
+        const card = await t.card('name', 'desc', 'attachments', 'labels')
         const attachments = card.attachments
-        setTitle(card.name)
         const [ct, cm, ig, tg] = await Promise.all([
-            getCode(card.desc, TARGET_TWITTER, attachments),
-            getCode(card.desc, TARGET_MEDIUM, attachments),
-            getCode(card.desc, TARGET_INSTAGRAM, attachments),
-            getCode(card.desc, TARGET_TELEGRAM, attachments),
+            getInputForTarget(card.desc, TARGET_TWITTER, attachments, card.labels),
+            getInputForTarget(card.desc, TARGET_MEDIUM, attachments, card.labels),
+            getInputForTarget(card.desc, TARGET_INSTAGRAM, attachments, card.labels),
+            getInputForTarget(card.desc, TARGET_TELEGRAM, attachments, card.labels),
         ]);
-        setTwitterCode(ct || '')
-        setMediumCode(cm || '')
-        setInstagramCode(ig || '')
-        setTelegramCode(tg || '')
+        setTwitterInput(ct)
+        setMediumInput(cm)
+        setInstagramInput(ig)
+        setTelegramInput(tg)
         setLoaded(true)
     })
     useEffect(() => { setTimeout(() => window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {})) })
@@ -46,10 +46,10 @@ export default function Preview() {
                 <li><button onClick={() => setDisplayPreview(TARGET_INSTAGRAM)}>Instagram</button></li>
                 <li><button onClick={() => setDisplayPreview(TARGET_TELEGRAM)}>Telegram</button></li>
             </ul>
-            {displayPreview === TARGET_TWITTER && <TwitterPreview code={twitterCode} />}
-            {displayPreview === TARGET_MEDIUM && <MediumPreview title={title} code={mediumCode} />}
-            {displayPreview === TARGET_INSTAGRAM && <InstagramPreview code={instagramCode} />}
-            {displayPreview === TARGET_TELEGRAM && <TelegramPreview code={telegramCode} />}
+            {displayPreview === TARGET_TWITTER && <TwitterPreview input={twitterInput} />}
+            {displayPreview === TARGET_MEDIUM && <MediumPreview input={mediumInput} />}
+            {displayPreview === TARGET_INSTAGRAM && <InstagramPreview input={instagramInput} />}
+            {displayPreview === TARGET_TELEGRAM && <TelegramPreview input={telegramInput} />}
         </div>}
     </div>
 }

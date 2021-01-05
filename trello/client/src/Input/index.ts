@@ -12,27 +12,40 @@ export type TARGET_TELEGRAM = 'telegram'
 export type TARGET = TARGET_TWITTER | TARGET_MEDIUM | TARGET_INSTAGRAM | TARGET_TELEGRAM
 
 
-export const fetchTitleAndCode = async (target: TARGET, t?: Trello.PowerUp.IFrame) => {
-    t = t || window.TrelloPowerUp.iframe();
-    const card = await t.card('name', 'desc', 'attachments')
-    return {
-        title: card.name,
-        code: await getCode(card.desc, target, card.attachments, t),
-    }
+export interface InputForTarget {
+    title?: string;
+    code: string;
+    target: TARGET;
+    tags: string[];
 }
-export const getCode = async (desc: string, target: TARGET, attachments: {url: string}[], t?: Trello.PowerUp.IFrame) => {
+
+export const fetchInputForTarget = async (target: TARGET, t?: Trello.PowerUp.IFrame) => {
+    t = t || window.TrelloPowerUp.iframe();
+    const card = await t.card('name', 'desc', 'attachments', 'labels')
+    const input = await getInputForTarget(card.desc, target, card.attachments, card.labels, t);
+    return {title: card.name, ...input}
+}
+export const getInputForTarget = async (desc: string, target: TARGET, attachments: {url: string}[], labels: {name: string}[], t?: Trello.PowerUp.IFrame): Promise<InputForTarget> => {
     t = t || window.TrelloPowerUp.iframe();
     const prefix = DOC_PREFIX
     const att = attachments.find(
             (attachment) => attachment.url.indexOf(prefix) === 0)
-    let text;
+    let code = '';
     if (att) {
-        text = await getText(att.url.substring(prefix.length), target, t)
+        code = await getText(att.url.substring(prefix.length), target, t) || '';
     } else {
-        text = desc;
+        code = desc;
     }
-    if (text && target !== TARGET_TWITTER) {
-        text = text.replace(/\n\*{3}\n/, '\n')
+    if (code && target !== TARGET_TWITTER) {
+        code = code.replace(/\n\*{3}\n/, '\n')
     }
-    return text;
+    const tags = labels
+        .filter((l) => l.name.split(':')[0].replace(/\s*/g, '')
+                .toLowerCase().split(',').includes(target))
+        .map((l) => l.name.split(':').slice(1).join(':').trim())
+    return {
+        code,
+        target,
+        tags,
+    };
 }

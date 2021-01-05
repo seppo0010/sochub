@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trello } from '../types/TrelloPowerUp';
 import './Twitter.css'
-import { TARGET_TWITTER, fetchTitleAndCode } from '../Input'
+import { TARGET_TWITTER, fetchInputForTarget } from '../Input'
 import twitter from 'twitter-text'
 
 declare global {
@@ -80,7 +80,7 @@ export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
                     });
                     return
                 }
-                const {code} = await fetchTitleAndCode(TARGET_TWITTER, t)
+                const {code} = await fetchInputForTarget(TARGET_TWITTER, t)
                 if (!code) {
                     t.alert({
                         message: 'Error getting content to publish',
@@ -253,7 +253,7 @@ const showTweet = (text: string) => {
         {qt}
     </p>
 }
-export const Preview = ({code}: { code: string }) => {
+export const Preview = ({input: { code } }: {input: { code: string } }) => {
     window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_TWITTER, !!code)
     const [user, setUser] = useState({screen_name: 'twitter', name: 'Twitter', profile_image_url: process.env.REACT_APP_BASE_URL + "/twitter-default-figure.png"})
     useState(async () => {

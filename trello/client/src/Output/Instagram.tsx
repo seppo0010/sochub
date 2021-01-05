@@ -6,7 +6,7 @@ declare interface User {
     username: string
 }
 
-export const Preview = ({code}: { code: string }) => {
+export const Preview = ({ input: { code, tags } }: { input: { code: string, tags: string[] } }) => {
     const [user, setUser] = useState({username: 'instagram'})
     const [canvaURL, setCanvaURL] = useState('')
     window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_INSTAGRAM, !!canvaURL)
@@ -38,7 +38,7 @@ export const Preview = ({code}: { code: string }) => {
                 <li><img src={process.env.REACT_APP_BASE_URL + "/ig-bookmark.svg"} alt="Bookmark" /></li>
             </ul>
             <p><strong>45 likes</strong></p>
-            <p><strong>{user.username}</strong> {code}</p>
+            <p><strong>{user.username}</strong> {code} {tags.map((t) => ' #' + t)}</p>
         </div>}
     </div>
 }

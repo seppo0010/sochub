@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trello } from '../types/TrelloPowerUp';
 import './Telegram.css'
-import { TARGET_TELEGRAM, fetchTitleAndCode } from '../Input'
+import { TARGET_TELEGRAM, fetchInputForTarget } from '../Input'
 
 declare interface TelegramBotChannel {
     id: string;
@@ -97,7 +97,7 @@ export const publishItems = async (t: Trello.PowerUp.IFrame) => {
                     return
                 }
                 try {
-                    const {code} = await fetchTitleAndCode(TARGET_TELEGRAM, t)
+                    const {code} = await fetchInputForTarget(TARGET_TELEGRAM, t)
                     if (!code) {
                         alert('Error getting content to publish')
                         return
@@ -194,7 +194,7 @@ export const Settings = () => {
     )
 }
 
-export const Preview = ({code}: { code: string }) => {
+export const Preview = ({ input: { code } }: { input: { code: string } }) => {
     window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_TELEGRAM, !!code)
     const [user, setUser] = useState<TelegramBotChannel>({
         id: '',
