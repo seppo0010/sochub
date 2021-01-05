@@ -65,7 +65,6 @@ module.exports = function (app) {
             else resolve(row)
         }));
         stmt.finalize();
-        console.log(obj)
         res.writeHead(200, [['Content-Type', 'image/jpeg']]);
         res.end(obj.image)
     })
