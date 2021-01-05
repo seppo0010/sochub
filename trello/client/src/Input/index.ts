@@ -40,9 +40,9 @@ export const getInputForTarget = async (desc: string, target: TARGET, attachment
         code = code.replace(/\n\*{3}\n/, '\n')
     }
     const tags = labels
-        .filter((l) => l.name.split(':')[0].replace(/\s*/g, '')
+        .filter((l) => l.name[0] === '#' || l.name.split(':')[0].replace(/\s*/g, '')
                 .toLowerCase().split(',').includes(target))
-        .map((l) => l.name.split(':').slice(1).join(':').trim())
+        .map((l) => l.name[0] === '#' ? l.name.substr(1) : l.name.split(':').slice(1).join(':').trim())
     return {
         code,
         target,
