@@ -76,6 +76,11 @@ Trello.
 ![](input-canva-embed3.png)
 ![](input-canva-embed4.png)
 
+### Tagging
+
+Use trello labels to tag posts. It will only be included if they start with a
+hash (`#mytag`) or you can select a network with color (`instagram:tagforig`).
+
 ### Publishing
 
 #### Twitter
