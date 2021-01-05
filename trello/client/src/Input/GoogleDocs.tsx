@@ -3,6 +3,7 @@ import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM, TARGET_TELEGRAM } from './index'
 import escapeHtml from 'escape-html'
+import { fetchOrCreate } from '../Cache'
 
 export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
 const scope = 'profile email https://www.googleapis.com/auth/drive'
@@ -142,9 +143,7 @@ export const Page = () => {
     )
 }
 
-
-export const getContent = async (fileId: string, t?: Trello.PowerUp.IFrame, mimeType: string = 'text/html'): Promise<string> => {
-    t = t || window.TrelloPowerUp.iframe();
+export const loadDrive = async (t: Trello.PowerUp.IFrame): Promise<void> => {
     return new Promise((resolve, reject) => {
         gapi.load('client:auth2', async () => {
             const oauthToken = await loggedInToken(t)
@@ -159,15 +158,28 @@ export const getContent = async (fileId: string, t?: Trello.PowerUp.IFrame, mime
             });
             gapi.client.setToken({access_token: oauthToken})
 
-            gapi.client.load('drive', 'v2', async () => {
-                const content = await gapi.client.drive.files.export({
-                    fileId,
-                    mimeType,
-                });
-                resolve(content.body)
+            gapi.client.load('drive', 'v3', () => {
+                resolve()
             })
         });
     })
+}
+
+export const getModifiedTime = async (fileId: string, t: Trello.PowerUp.IFrame): Promise<string | undefined> => {
+    await loadDrive(t)
+    const data = await gapi.client.drive.files.get({
+        fileId,
+        fields: 'modifiedTime',
+    });
+    return data.result.modifiedTime
+}
+
+export const getContent = async (fileId: string, t: Trello.PowerUp.IFrame, mimeType: string = 'text/html'): Promise<string> => {
+    await loadDrive(t)
+    return (await gapi.client.drive.files.export({
+        fileId,
+        mimeType,
+    })).body;
 }
 
 declare type Comment = {
@@ -301,24 +313,34 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
 }
 
 export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
-    const mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    const str = await getContent(fileId, t, mimeType)
-    const body = new Uint8Array(str.length)
-    for (let i = 0; i < str.length; i++) {
-        body[i] = str.charCodeAt(i) & 0xFF
-    }
+    t = t || window.TrelloPowerUp.iframe();
+    const fetchText = async () => {
+        t = t || window.TrelloPowerUp.iframe();
+        const mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        const str = await getContent(fileId, t, mimeType)
+        const body = new Uint8Array(str.length)
+        for (let i = 0; i < str.length; i++) {
+            body[i] = str.charCodeAt(i) & 0xFF
+        }
 
-    const request = await fetch(process.env.REACT_APP_BASE_URL + '/../pandoc', {
-        method: 'POST',
-        body,
-        headers: new Headers({
-            'Content-Type': mimeType,
-            'Accept': 'text/html',
-            'X-track-changes': 'all'
-        }),
-    })
-    const document = await request.text()
-    return applyCommentsToDocument(document, target)
+        const request = await fetch(process.env.REACT_APP_BASE_URL + '/../pandoc', {
+            method: 'POST',
+            body,
+            headers: new Headers({
+                'Content-Type': mimeType,
+                'Accept': 'text/html',
+                'X-track-changes': 'all'
+            }),
+        })
+        const document = await request.text()
+        return applyCommentsToDocument(document, target)
+    }
+    const modifiedTime = await getModifiedTime(fileId, t)
+    if (!modifiedTime) {
+        return await fetchText()
+    }
+    return fetchOrCreate({fileId, modifiedTime, target}, 3600, fetchText);
+
 }
 
 export const AttachmentPreview = () => {
