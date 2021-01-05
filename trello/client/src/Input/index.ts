@@ -37,7 +37,7 @@ export const getInputForTarget = async (desc: string, target: TARGET, attachment
         code = desc;
     }
     if (code && target !== TARGET_TWITTER) {
-        code = code.replace(/\n\*{3}\n/, '\n')
+        code = code.replace(/<p>\*{3,}<\/p>/, '')
     }
     const tags = labels
         .filter((l) => l.name[0] === '#' || l.name.split(':')[0].replace(/\s*/g, '')
