@@ -10,6 +10,11 @@ const bodyParser = require('body-parser')
 const app = express();
 
 app.use(compression());
+app.use(bodyParser.raw({ type: [
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/x.docx',
+    'application/x.docx+empty_paragraphs',
+]}))
 app.use(
   express.json({
     verify: (request, response, buffer) => {
@@ -19,7 +24,6 @@ app.use(
 );
 app.use(express.json())
 app.use(express.static('public'));
-app.use(bodyParser.raw({ type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }))
 
 app.use('/pandoc', proxy(process.env.PANDOC_URL));
 

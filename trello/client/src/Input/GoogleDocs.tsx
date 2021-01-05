@@ -327,7 +327,7 @@ export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp
             method: 'POST',
             body,
             headers: new Headers({
-                'Content-Type': mimeType,
+                'Content-Type': 'application/x.docx+empty_paragraphs',
                 'Accept': 'text/html',
                 'X-track-changes': 'all'
             }),
