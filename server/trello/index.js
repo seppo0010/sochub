@@ -5,4 +5,5 @@ module.exports = function (app) {
     require('./medium')(app);
     require('./canva')(app);
     require('./telegram')(app);
+    require('./facebook')(app);
 }

@@ -9,7 +9,9 @@ export const TARGET_INSTAGRAM = 'instagram'
 export type TARGET_INSTAGRAM = 'instagram'
 export const TARGET_TELEGRAM = 'telegram'
 export type TARGET_TELEGRAM = 'telegram'
-export type TARGET = TARGET_TWITTER | TARGET_MEDIUM | TARGET_INSTAGRAM | TARGET_TELEGRAM
+export const TARGET_FACEBOOK = 'facebook'
+export type TARGET_FACEBOOK = 'facebook'
+export type TARGET = TARGET_TWITTER | TARGET_MEDIUM | TARGET_INSTAGRAM | TARGET_TELEGRAM | TARGET_FACEBOOK
 
 
 export interface InputForTarget {

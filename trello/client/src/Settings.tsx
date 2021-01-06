@@ -4,6 +4,7 @@ import { Settings as Twitter } from './Output/Twitter'
 import { Settings as Medium } from './Output/Medium'
 import { Settings as Instagram } from './Output/Instagram'
 import { Settings as Telegram } from './Output/Telegram'
+import { Settings as Facebook } from './Output/Facebook'
 
 const Settings = () => {
     return (
@@ -14,6 +15,7 @@ const Settings = () => {
             <Medium />
             <Instagram />
             <Telegram />
+            <Facebook />
         </div>
     )
 }

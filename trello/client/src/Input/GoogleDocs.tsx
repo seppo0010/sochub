@@ -1,7 +1,14 @@
 import { Trello } from '../types/TrelloPowerUp';
 import React, {useState, useEffect} from 'react';
 import { GoogleLogout, GoogleLogin, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
-import { TARGET, TARGET_TWITTER, TARGET_MEDIUM, TARGET_INSTAGRAM, TARGET_TELEGRAM } from './index'
+import {
+    TARGET,
+    TARGET_TWITTER,
+    TARGET_MEDIUM,
+    TARGET_INSTAGRAM,
+    TARGET_TELEGRAM,
+    TARGET_FACEBOOK
+} from './index'
 import escapeHtml from 'escape-html'
 import { fetchOrCreate } from '../Cache'
 
@@ -299,6 +306,7 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
 
     const format = {
         [TARGET_TWITTER]: 'textContent',
+        [TARGET_FACEBOOK]: 'textContent',
         [TARGET_MEDIUM]: 'innerHTML',
         [TARGET_TELEGRAM]: 'innerHTML',
         [TARGET_INSTAGRAM]: 'textContent',
