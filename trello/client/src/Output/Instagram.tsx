@@ -28,6 +28,9 @@ export const Preview = ({ input: { code, tags } }: { input: { code: string, tags
         }
     })
     useEffect(() => { setTimeout(() => window.TrelloPowerUp.iframe().sizeTo(document.body).catch(() => {})) })
+    if (!canvaURL) {
+        return <p style={{padding: 20}}>No output for Instagram</p>
+    }
     return <div className="instagram">
         {canvaURL && <div>
             <iframe src={canvaURL + '?embed'} title="instagram-preview"></iframe>

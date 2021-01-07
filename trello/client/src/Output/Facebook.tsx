@@ -29,16 +29,21 @@ const loadUser = async (t?: Trello.PowerUp.IFrame): Promise<{id: string, name?: 
 const fetchPages = async (t?: Trello.PowerUp.IFrame): Promise<undefined | {id: string, name: string, access_token: string}[]> => {
     const user = await loadUser(t)
     if (!user) return;
-    const req = await fetch('/trello/output-facebook/list-pages', {
-        method: 'POST',
-        headers: {
-            'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-            access_token: user.accessToken,
-        }),
-    })
-    return await req.json()
+    try {
+        const req = await fetch('/trello/output-facebook/list-pages', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+                access_token: user.accessToken,
+            }),
+        })
+        return await req.json()
+    } catch (e) {
+        console.error(e)
+        return []
+    }
 }
 
 const updatePreviewAccount = async (account?: Account) => {
@@ -168,6 +173,7 @@ export const Settings = () => {
 }
 
 export const Preview = ({input: {code}}: {input: {code: string}}) => {
+    const t = window.TrelloPowerUp.iframe();
     const [meta, setMeta] = useState<{id: string, og_object: {title: string, description: string, image: {url: string}[]}} | null>(null);
     const [previewAccount, setPreviewAccount] = useState<{name: string, image_url: string}>(() => {
         return {
@@ -178,17 +184,7 @@ export const Preview = ({input: {code}}: {input: {code: string}}) => {
     useState(async () => {
         const [pAccount, user] = await Promise.all([getPreviewAccount(), loadUser()])
         if (!user || !pAccount) return;
-        const reqPages = await fetch('/trello/output-facebook/list-pages', {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify({
-                access_token: user.accessToken,
-            }),
-        })
-        const resPages = await reqPages.json()
-        const page = resPages.filter((p: {id: string}) => p.id === pAccount.id)
+        const page = (await fetchPages(t) || []).filter((p: {id: string}) => p.id === pAccount.id)
         if (!page) return
         const req = await fetch('/trello/output-facebook/me', {
             method: 'POST',
@@ -222,10 +218,9 @@ export const Preview = ({input: {code}}: {input: {code: string}}) => {
       }
     });
     if (!code) {
-        return <p>No output for Facebook</p>
+        return <p style={{padding: 20}}>No output for Facebook</p>
     }
     setTimeout(() => {
-        const t = window.TrelloPowerUp.iframe();
         const imgs = document.images;
         t.sizeTo(document.body).catch(() => {});
         Array.prototype.slice.call(imgs).forEach((img) => {

@@ -21,6 +21,8 @@ import {
     TARGET_MEDIUM,
     TARGET_INSTAGRAM,
     TARGET_TELEGRAM,
+    TARGET_FACEBOOK,
+    deleteCache,
 } from './Input'
 import {
     twitterPublishItems,
@@ -132,16 +134,23 @@ const Connector = () => {
                     icon: '',
                     title: 'Preview',
                     action: {
-                        text: 'Publish',
+                        text: 'Actions',
                         callback: async (t: Trello.PowerUp.IFrame) => {
                             return t.popup({
-                                title: 'Publish this!',
-                                items: (await Promise.all([
+                                title: 'Actions...',
+                                items: [
+                                    {
+                                        text: `Clear cache...`,
+                                        callback: async (t: Trello.PowerUp.IFrame) => {
+                                            await deleteCache(t)
+                                        },
+                                    }
+                                ].concat((await Promise.all([
                                     twitterPublishItems(t),
                                     mediumPublishItems(t),
                                     telegramPublishItems(t),
                                     facebookPublishItems(t),
-                                ])).flat()
+                                ])).flat())
                             })
                         },
                     },
@@ -168,11 +177,12 @@ const Connector = () => {
                 });
             },
             'card-badges': async (t: Trello.PowerUp.IFrame): Promise<Trello.PowerUp.CardBadge[]> => {
-                const [tw, m, ig, tg] = await Promise.all([
+                const [tw, m, ig, tg, fb] = await Promise.all([
                     t.get('card', 'shared', 'Output_' + TARGET_TWITTER),
                     t.get('card', 'shared', 'Output_' + TARGET_MEDIUM),
                     t.get('card', 'shared', 'Output_' + TARGET_INSTAGRAM),
                     t.get('card', 'shared', 'Output_' + TARGET_TELEGRAM),
+                    t.get('card', 'shared', 'Output_' + TARGET_FACEBOOK),
                 ])
                 const result: Trello.PowerUp.CardBadge[] = []
                 if (tw) {

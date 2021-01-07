@@ -1,4 +1,4 @@
-import { DOC_PREFIX, getText } from './GoogleDocs'
+import { DOC_PREFIX, getText, deleteCache as googleDocsDeleteCache } from './GoogleDocs'
 import { Trello } from '../types/TrelloPowerUp';
 
 export const TARGET_TWITTER = 'twitter'
@@ -27,14 +27,37 @@ export const fetchInputForTarget = async (target: TARGET, t?: Trello.PowerUp.IFr
     const input = await getInputForTarget(card.desc, target, card.attachments, card.labels, t);
     return {title: card.name, ...input}
 }
-export const getInputForTarget = async (desc: string, target: TARGET, attachments: {url: string}[], labels: {name: string}[], t?: Trello.PowerUp.IFrame): Promise<InputForTarget> => {
-    t = t || window.TrelloPowerUp.iframe();
+
+const getGoogleDocsFileId = (attachments: {url: string}[]): string | null => {
     const prefix = DOC_PREFIX
     const att = attachments.find(
             (attachment) => attachment.url.indexOf(prefix) === 0)
-    let code = '';
     if (att) {
-        code = await getText(att.url.substring(prefix.length), target, t) || '';
+        return att.url.substring(prefix.length)
+    }
+    return null
+}
+export const deleteCache = async (t: Trello.PowerUp.IFrame) => {
+    const attachments = (await t.card('attachments')).attachments
+    const fileId = getGoogleDocsFileId(attachments)
+    if (!fileId) return;
+    for (let target of [
+        TARGET_TWITTER,
+        TARGET_MEDIUM,
+        TARGET_INSTAGRAM,
+        TARGET_TELEGRAM,
+        TARGET_FACEBOOK,
+    ]) {
+        googleDocsDeleteCache(fileId, target as TARGET, t)
+    }
+}
+
+export const getInputForTarget = async (desc: string, target: TARGET, attachments: {url: string}[], labels: {name: string}[], t?: Trello.PowerUp.IFrame): Promise<InputForTarget> => {
+    t = t || window.TrelloPowerUp.iframe();
+    let code = '';
+    const fileId = getGoogleDocsFileId(attachments)
+    if (fileId) {
+        code = await getText(fileId, target, t) || '';
     } else {
         code = desc;
     }

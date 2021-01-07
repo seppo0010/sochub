@@ -10,7 +10,7 @@ import {
     TARGET_FACEBOOK
 } from './index'
 import escapeHtml from 'escape-html'
-import { fetchOrCreate } from '../Cache'
+import { fetchOrCreate, remove } from '../Cache'
 
 export const DOC_PREFIX = process.env.REACT_APP_BASE_URL + '/input-googledocs/'
 const scope = 'profile email https://www.googleapis.com/auth/drive'
@@ -320,6 +320,26 @@ const applyCommentsToDocument = (html: string, target: TARGET): string => {
     return value
 }
 
+const getCacheKey = async (fileId: string, target: TARGET, t: Trello.PowerUp.IFrame): Promise<{fileId: string, modifiedTime: string, target: TARGET} | null> => {
+    try {
+        const modifiedTime = await getModifiedTime(fileId, t)
+        if (!modifiedTime) {
+            return null
+        }
+        return {fileId, modifiedTime, target}
+    } catch (e) {
+        console.error(e)
+        return null;
+    }
+}
+
+export const deleteCache = async (fileId: string, target: TARGET, t: Trello.PowerUp.IFrame) => {
+    const cacheKey = await getCacheKey(fileId, target, t)
+    if (cacheKey) {
+        return remove(cacheKey)
+    }
+}
+
 export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp.IFrame): Promise<string | null> => {
     t = t || window.TrelloPowerUp.iframe();
     const fetchText = async () => {
@@ -331,30 +351,29 @@ export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp
             body[i] = str.charCodeAt(i) & 0xFF
         }
 
-        const request = await fetch(process.env.REACT_APP_BASE_URL + '/../pandoc', {
-            method: 'POST',
-            body,
-            headers: new Headers({
-                'Content-Type': 'application/x.docx+empty_paragraphs',
-                'Accept': 'text/html',
-                'X-track-changes': 'all'
-            }),
-        })
-        if (!request.ok) throw new Error('not ok')
-        const document = await request.text()
-        return applyCommentsToDocument(document, target)
-    }
-    try {
-        const modifiedTime = await getModifiedTime(fileId, t)
-        if (!modifiedTime) {
-            return await fetchText()
+        try {
+            const request = await fetch(process.env.REACT_APP_BASE_URL + '/../pandoc', {
+                method: 'POST',
+                body,
+                headers: new Headers({
+                    'Content-Type': 'application/x.docx+empty_paragraphs',
+                    'Accept': 'text/html',
+                    'X-track-changes': 'all'
+                }),
+            })
+            if (!request.ok) throw new Error('not ok')
+            const document = await request.text()
+            return applyCommentsToDocument(document, target)
+        } catch (e) {
+            console.error(e)
+            return null
         }
-        return fetchOrCreate({fileId, modifiedTime, target}, 3600, fetchText);
-    } catch (e) {
-        console.error(e)
-        return null;
     }
-
+    const cacheKey = await getCacheKey(fileId, target, t)
+    if (!cacheKey) {
+        return await fetchText()
+    }
+    return fetchOrCreate(cacheKey, 3600, fetchText);
 }
 
 export const AttachmentPreview = () => {

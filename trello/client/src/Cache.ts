@@ -15,3 +15,9 @@ export const fetchOrCreate  = async <T, U>(key: T, exp: number, createCallback: 
     wsCache.set(cacheKey, value, {exp})
     return value;
 }
+
+export const remove = async <T>(key: T): Promise<void> => {
+    wsCache.deleteAllExpires();
+    const cacheKey = sha1(stringify(key))
+    wsCache.delete(cacheKey)
+}
