@@ -114,6 +114,7 @@ export const Settings = () => {
             setMediumBlogs(await saveMediumBlog(mediumBlog, token))
             setInput('')
         } catch (e) {
+            console.error(e)
             setError(e.error ? e.error : 'failed to add blog')
         }
     }
