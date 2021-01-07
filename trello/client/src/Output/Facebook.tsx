@@ -173,6 +173,7 @@ export const Settings = () => {
 }
 
 export const Preview = ({input: {code}}: {input: {code: string}}) => {
+    window.TrelloPowerUp.iframe().set('card', 'shared', 'Output_' + TARGET_FACEBOOK, !!code)
     const t = window.TrelloPowerUp.iframe();
     const [meta, setMeta] = useState<{id: string, og_object: {title: string, description: string, image: {url: string}[]}} | null>(null);
     const [previewAccount, setPreviewAccount] = useState<{name: string, image_url: string}>(() => {

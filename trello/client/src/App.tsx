@@ -213,6 +213,13 @@ const Connector = () => {
                         color: 'light-gray',
                     })
                 }
+                if (fb) {
+                    result.push({
+                        text: 'Facebook',
+                        icon: process.env.REACT_APP_BASE_URL + '/facebook.svg',
+                        color: 'light-gray',
+                    })
+                }
                 return result
             },
         },
