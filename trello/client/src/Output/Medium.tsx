@@ -108,6 +108,9 @@ export const Settings = () => {
                 body: JSON.stringify({token}),
             });
             const mediumBlog = await req.json()
+            if (!req.ok) {
+                throw mediumBlog
+            }
             setMediumBlogs(await saveMediumBlog(mediumBlog, token))
             setInput('')
         } catch (e) {
