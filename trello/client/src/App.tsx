@@ -138,19 +138,19 @@ const Connector = () => {
                         callback: async (t: Trello.PowerUp.IFrame) => {
                             return t.popup({
                                 title: 'Actions...',
-                                items: [
+                                items: ([
                                     {
                                         text: `Clear cache...`,
                                         callback: async (t: Trello.PowerUp.IFrame) => {
                                             await deleteCache(t)
                                         },
                                     }
-                                ].concat((await Promise.all([
+                                ] as Trello.PowerUp.PopupOptionsItem[]).concat((await Promise.all([
                                     twitterPublishItems(t),
                                     mediumPublishItems(t),
                                     telegramPublishItems(t),
                                     facebookPublishItems(t),
-                                ])).flat())
+                                ])).flat() as Trello.PowerUp.PopupOptionsItem[])
                             })
                         },
                     },
