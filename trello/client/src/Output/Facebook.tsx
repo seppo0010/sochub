@@ -63,7 +63,23 @@ const getPreviewAccount = async (): Promise<Account | undefined> => {
 }
 
 export const publishItems = async (t: Trello.PowerUp.IFrame) => {
-    return (await fetchPages(t) || []).map((p) => {
+    const pages = await fetchPages(t)
+    if (!pages) {
+        const user = await loadUser(t)
+        if (!user) {
+            return []
+        }
+        return [{
+            text: 'Login back to facebook to post',
+            callback: () => {
+                t.modal({
+                    url: t.signUrl(process.env.REACT_APP_BASE_URL + '/settings', ),
+                    title: 'Settings',
+                })
+            },
+        }]
+    }
+    return pages.map((p) => {
         return {
             text: `Facebook ${p.name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
