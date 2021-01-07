@@ -340,14 +340,20 @@ export const getText = async (fileId: string, target: TARGET, t?: Trello.PowerUp
                 'X-track-changes': 'all'
             }),
         })
+        if (!request.ok) throw new Error('not ok')
         const document = await request.text()
         return applyCommentsToDocument(document, target)
     }
-    const modifiedTime = await getModifiedTime(fileId, t)
-    if (!modifiedTime) {
-        return await fetchText()
+    try {
+        const modifiedTime = await getModifiedTime(fileId, t)
+        if (!modifiedTime) {
+            return await fetchText()
+        }
+        return fetchOrCreate({fileId, modifiedTime, target}, 3600, fetchText);
+    } catch (e) {
+        console.error(e)
+        return null;
     }
-    return fetchOrCreate({fileId, modifiedTime, target}, 3600, fetchText);
 
 }
 

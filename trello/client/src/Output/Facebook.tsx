@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import FacebookLogin from 'react-facebook-login';
+import FacebookLogin, { ReactFacebookLoginInfo } from 'react-facebook-login';
 import './Facebook.css'
+import { TARGET_FACEBOOK, fetchInputForTarget } from '../Input'
 import twitter from 'twitter-text'
 
 declare global {
@@ -9,25 +10,139 @@ declare global {
     }
 }
 
-const saveUser = async (user: {id: string, name: string, accessToken: string}) => {
+declare interface Account {
+    id: string;
 }
+const saveUser = async (user: {id: string, name?: string, accessToken: string}) => {
+    const t = window.TrelloPowerUp.iframe();
+    await t.storeSecret('Facebook_user', JSON.stringify(user))
+}
+
+const loadUser = async (): Promise<{id: string, name?: string, accessToken: string} | undefined> => {
+    const t = window.TrelloPowerUp.iframe();
+    try {
+        return JSON.parse(await t.loadSecret('Facebook_user'))
+    } catch (e) {}
+}
+
+const updatePreviewAccount = async (account?: Account) => {
+    if (account) {
+        const {id} = account
+        window.TrelloPowerUp.iframe().set('board', 'shared', 'Output_' + TARGET_FACEBOOK + '_preview', JSON.stringify({id}))
+    } else {
+        window.TrelloPowerUp.iframe().remove('board', 'shared', 'Output_' + TARGET_FACEBOOK + '_preview')
+    }
+}
+
+const getPreviewAccount = async (): Promise<Account | undefined> => {
+    const data = await window.TrelloPowerUp.iframe().get('board', 'shared', 'Output_' + TARGET_FACEBOOK + '_preview')
+    if (data) {
+        return JSON.parse(data)
+    }
+}
+
 export const Settings = () => {
+    const [loggedIn, setLoggedIn] = useState(false)
+    const [accounts, setAccounts] = useState<{id: string, name: string, access_token: string}[]>([]);
+    const [previewAccount, setPreviewAccount] = useState<string>('');
+
+    useState(async () => {
+        const pAccount = await getPreviewAccount()
+        if (pAccount) {
+            setPreviewAccount(pAccount.id)
+        }
+    })
+
+    const logIn = async () => {
+        const user = await loadUser()
+        if (!user) return;
+        setLoggedIn(true)
+        const req = await fetch('/trello/output-facebook/list-pages', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+                access_token: user.accessToken,
+            }),
+        })
+        const res = await req.json()
+        setAccounts(res)
+    }
+    useState(async () => await loadUser() && logIn());
     return (<div>
         <p>
             Facebook
             &nbsp;
             <FacebookLogin
                 appId={process.env.REACT_APP_FACEBOOK_APP_ID || ''}
-                textButton="Login"
+                textButton={loggedIn ? 'Settings' : 'Login'}
                 cssClass=""
                 scope="pages_manage_posts,pages_show_list,pages_read_engagement"
-                callback={(r) => console.log(r)} />
+                callback={async (r) => {
+                    if ((r as ReactFacebookLoginInfo).id) {
+                        await saveUser(r as ReactFacebookLoginInfo)
+                        logIn()
+                    }
+                }}/>
+            {accounts && (<ul>
+                {accounts.map((a) => (
+                    <li key={a.id}>
+                        {a.name}
+                        {previewAccount === a.id && <button onClick={async () => {
+                            setPreviewAccount('')
+                            updatePreviewAccount()
+                        }}>Unset as preview account</button>}
+                        {previewAccount !== a.id && <button onClick={async () => {
+                            setPreviewAccount(a.id)
+                            updatePreviewAccount(a)
+                        }}>Set as preview account</button>}
+                    </li>
+                ))}
+            </ul>)}
         </p>
     </div>)
 }
 
 export const Preview = ({input: {code}}: {input: {code: string}}) => {
     const [meta, setMeta] = useState(null);
+    const [previewAccount, setPreviewAccount] = useState<{name: string, image_url: string}>(() => {
+        return {
+            name: 'My Page',
+            image_url: process.env.REACT_APP_BASE_URL + "/facebook-default-figure.png",
+        }
+    });
+    useState(async () => {
+        const [pAccount, user] = await Promise.all([getPreviewAccount(), loadUser()])
+        if (!user || !pAccount) return;
+        const reqPages = await fetch('/trello/output-facebook/list-pages', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+                access_token: user.accessToken,
+            }),
+        })
+        const resPages = await reqPages.json()
+        const page = resPages.filter((p: {id: string}) => p.id === pAccount.id)
+        if (!page) return
+        const req = await fetch('/trello/output-facebook/me', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: page[0].id,
+                access_token: page[0].access_token,
+            }),
+        })
+        const res = await req.json()
+        setPreviewAccount({
+            name: res.me.name,
+            image_url: res.picture.location,
+        })
+    })
     useState(async () => {
       setMeta(null);
       const matches = code && code.match(/https?:\/\/[-\w@:%_+.~#?,&//=]+/g);
@@ -38,13 +153,15 @@ export const Preview = ({input: {code}}: {input: {code: string}}) => {
           setMeta(data);
       }
     });
-    console.log(meta)
+    if (!code) {
+        return <p>No output for Facebook</p>
+    }
     return (<div className="flex-auto">
       <div className="mb3 rounded shadow bg-white max-width-2">
           <header className="flex p2">
-            <img src={process.env.REACT_APP_BASE_URL + "/facebook-default-figure.png"} className="circle h-40" alt="" style={{maxWidth: 60, maxHeight: 60}} />
+            <img src={previewAccount.image_url} className="circle h-40" alt="" style={{width: 50, height: 50}} />
             <div className="pl2">
-              <div className="inline-block bold h5">My Page</div>
+              <div className="inline-block bold h5">{previewAccount.name}</div>
               <div className="h6 gray">Just now</div>
             </div>
           </header>
