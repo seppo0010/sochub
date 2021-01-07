@@ -34,7 +34,7 @@ module.exports = function (app) {
         graph.setAccessToken(access_token);
         try {
             const response = await util.promisify(graph.post)(`/${id}/feed`, {message})
-            res.json(response.data)
+            res.json(response)
         } catch (e) {
             console.error(e)
             res.status(500)

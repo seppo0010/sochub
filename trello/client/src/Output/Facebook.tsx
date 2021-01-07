@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import { Trello } from '../types/TrelloPowerUp';
 import FacebookLogin, { ReactFacebookLoginInfo } from 'react-facebook-login';
 import './Facebook.css'
 import { TARGET_FACEBOOK, fetchInputForTarget } from '../Input'
@@ -18,11 +19,26 @@ const saveUser = async (user: {id: string, name?: string, accessToken: string}) 
     await t.storeSecret('Facebook_user', JSON.stringify(user))
 }
 
-const loadUser = async (): Promise<{id: string, name?: string, accessToken: string} | undefined> => {
-    const t = window.TrelloPowerUp.iframe();
+const loadUser = async (t?: Trello.PowerUp.IFrame): Promise<{id: string, name?: string, accessToken: string} | undefined> => {
+    t = t || window.TrelloPowerUp.iframe();
     try {
         return JSON.parse(await t.loadSecret('Facebook_user'))
     } catch (e) {}
+}
+
+const fetchPages = async (t?: Trello.PowerUp.IFrame): Promise<undefined | {id: string, name: string, access_token: string}[]> => {
+    const user = await loadUser(t)
+    if (!user) return;
+    const req = await fetch('/trello/output-facebook/list-pages', {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+            access_token: user.accessToken,
+        }),
+    })
+    return await req.json()
 }
 
 const updatePreviewAccount = async (account?: Account) => {
@@ -41,6 +57,62 @@ const getPreviewAccount = async (): Promise<Account | undefined> => {
     }
 }
 
+export const publishItems = async (t: Trello.PowerUp.IFrame) => {
+    return (await fetchPages(t) || []).map((p) => {
+        return {
+            text: `Facebook ${p.name}`,
+            callback: async (t: Trello.PowerUp.IFrame) => {
+                t.alert({
+                    message: 'Publishing...',
+                    duration: 6,
+                });
+                const {code} = await fetchInputForTarget(TARGET_FACEBOOK, t)
+                if (!code) {
+                    t.alert({
+                        message: 'Error getting content to publish',
+                        duration: 6,
+                        display: 'error',
+                    })
+                    return
+                }
+                try {
+                    const req = await fetch('/trello/output-facebook/publish', {
+                        method: 'POST',
+                        headers: {
+                            'content-type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            id: p.id,
+                            access_token: p.access_token,
+                            message: code,
+                        }),
+                    })
+                    const res = await req.json()
+                    if (res.error) {
+                        throw new Error(res)
+                    }
+                    t.attach({
+                        name: 'Facebook Post',
+                        url: `https://facebook.com/${res.id}`
+                    });
+                    t.alert({
+                        message: 'Post published',
+                        duration: 6,
+                        display: 'success'
+                    });
+                } catch (e) {
+                    t.alert({
+                        message: 'Post failed :(',
+                        duration: 6,
+                        display: 'error'
+                    });
+                }
+                t.closePopup()
+            },
+        }
+    })
+}
+
 export const Settings = () => {
     const [loggedIn, setLoggedIn] = useState(false)
     const [accounts, setAccounts] = useState<{id: string, name: string, access_token: string}[]>([]);
@@ -54,20 +126,11 @@ export const Settings = () => {
     })
 
     const logIn = async () => {
-        const user = await loadUser()
-        if (!user) return;
-        setLoggedIn(true)
-        const req = await fetch('/trello/output-facebook/list-pages', {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify({
-                access_token: user.accessToken,
-            }),
-        })
-        const res = await req.json()
-        setAccounts(res)
+        const accs = await fetchPages()
+        if (accs) {
+            setAccounts(accs)
+            setLoggedIn(true)
+        }
     }
     useState(async () => await loadUser() && logIn());
     return (<div>
@@ -105,7 +168,7 @@ export const Settings = () => {
 }
 
 export const Preview = ({input: {code}}: {input: {code: string}}) => {
-    const [meta, setMeta] = useState(null);
+    const [meta, setMeta] = useState<{id: string, og_object: {title: string, description: string, image: {url: string}[]}} | null>(null);
     const [previewAccount, setPreviewAccount] = useState<{name: string, image_url: string}>(() => {
         return {
             name: 'My Page',
@@ -145,17 +208,30 @@ export const Preview = ({input: {code}}: {input: {code: string}}) => {
     })
     useState(async () => {
       setMeta(null);
-      const matches = code && code.match(/https?:\/\/[-\w@:%_+.~#?,&//=]+/g);
-      const url = matches && matches[0];
-      if (url) {
-          const json = await fetch("https://graph.facebook.com/?fields=og_object{image,title,description}&scrape=true&id=" + url);
-          const data = await json.json();
-          setMeta(data);
+      try {
+          const user = await loadUser()
+          if (!user) return;
+          const matches = code && code.match(/https?:\/\/[-\w@:%_+.~#?,&//=]+/g);
+          const url = matches && matches[0];
+          if (url) {
+              const req = await fetch(`https://graph.facebook.com/?fields=og_object{image,title,description}&scrape=true&access_token=${user.accessToken}&id=${url}`)
+              setMeta(await req.json())
+          }
+      } catch (e) {
+        console.error(e)
       }
     });
     if (!code) {
         return <p>No output for Facebook</p>
     }
+    setTimeout(() => {
+        const t = window.TrelloPowerUp.iframe();
+        const imgs = document.images;
+        t.sizeTo(document.body).catch(() => {});
+        Array.prototype.slice.call(imgs).forEach((img) => {
+            img.addEventListener('load', () => t.sizeTo(document.body).catch(() => {}), false );
+        });
+    })
     return (<div className="flex-auto">
       <div className="mb3 rounded shadow bg-white max-width-2">
           <header className="flex p2">
@@ -166,14 +242,14 @@ export const Preview = ({input: {code}}: {input: {code: string}}) => {
             </div>
           </header>
           <div className="h6 px2 py1" style={{whiteSpace: 'pre-line'}} dangerouslySetInnerHTML={{ __html: twitter.autoLink(twitter.htmlEscape(code)) }}></div>
-          { /* meta.og_object && (<div className="border-gray border-top">
-            <img className="col-12" src={ meta.og_object && meta.og_object.image[0].url } />
+          { meta && meta.og_object && (<div className="border-gray border-top">
+            { meta.og_object.image && <img className="col-12" src={ meta.og_object && meta.og_object.image[0].url } alt="" /> }
             <div className="p2">
               <div className="gray h6">{ meta.id }</div>
-              <div className="bold h5">{ meta.og_object && meta.og_object.title }</div>
-              <div className="gray h6">{ meta.og_object && meta.og_object.description }</div>
+              <div className="bold h5">{ meta.og_object.title }</div>
+              <div className="gray h6">{ meta.og_object.description }</div>
             </div>
-          </div>) */}
+          </div>) }
           <footer className="border-gray border-top">
             <div className="px2 py1">
               <svg width="16" height="16">

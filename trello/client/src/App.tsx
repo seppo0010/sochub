@@ -28,6 +28,7 @@ import {
 } from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
 import { publishItems as telegramPublishItems } from './Output/Telegram'
+import { publishItems as facebookPublishItems } from './Output/Facebook'
 import Preview from './Preview';
 import Schedule from './Schedule';
 import Settings from './Settings';
@@ -139,6 +140,7 @@ const Connector = () => {
                                     twitterPublishItems(t),
                                     mediumPublishItems(t),
                                     telegramPublishItems(t),
+                                    facebookPublishItems(t),
                                 ])).flat()
                             })
                         },
