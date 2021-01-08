@@ -213,6 +213,9 @@ function dfs(root: Node, keep: (node: Node) => boolean) {
         let currentNode = stack.pop()
         if (!currentNode) break;
         if (!keep(currentNode)) {
+            if (currentNode instanceof Element) {
+                currentNode.innerHTML = ''
+            }
             if (currentNode.parentNode) {
                 currentNode.parentNode.removeChild(currentNode)
             }
