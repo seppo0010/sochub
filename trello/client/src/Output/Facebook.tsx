@@ -5,6 +5,8 @@ import './Facebook.css'
 import { TARGET_FACEBOOK, fetchInputForTarget } from '../Input'
 import twitter from 'twitter-text'
 
+const FACEBOOK_URL_REGEX = /^https:\/\/(?:www.)?facebook.com\/(?:(?:[a-zA-Z0-9_]+\/posts\/([0-9]+))|(?:[0-9_]+))$/
+
 declare global {
     interface Window {
         fbAsyncInit: Function,
@@ -293,4 +295,26 @@ export const Preview = ({input: {code}}: {input: {code: string}}) => {
           </footer>
       </div>
     </div>)
+}
+
+export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
+    entries: Trello.PowerUp.Attachment[];
+}): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
+    const user = await loadUser(t)
+    if (!user || !user.accessToken) return []
+    return await Promise.all(options.entries.filter(function (attachment) {
+        return attachment.url.match(FACEBOOK_URL_REGEX)
+    }).map(async (attachment) => {
+        return {
+            id: attachment.url,
+            claimed: [attachment],
+            icon: '',
+            title: () => 'Post',
+            content: {
+              type: 'iframe',
+              url: t.signUrl(`${process.env.REACT_APP_BASE_URL}/output-facebook/preview-post?access_token=${encodeURIComponent(user.accessToken)}&url=${encodeURIComponent(attachment.url)}`),
+              height: 230
+            }
+        }
+    }))
 }

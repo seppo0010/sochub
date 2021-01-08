@@ -30,7 +30,10 @@ import {
 } from './Output/Twitter'
 import { mediumPublishItems } from './Output/Medium'
 import { publishItems as telegramPublishItems } from './Output/Telegram'
-import { publishItems as facebookPublishItems } from './Output/Facebook'
+import {
+    publishItems as facebookPublishItems,
+    AttachmentSection as FacebookAttachmentSection,
+} from './Output/Facebook'
 import Preview from './Preview';
 import Schedule from './Schedule';
 import Settings from './Settings';
@@ -89,6 +92,7 @@ const Connector = () => {
         window.TrelloPowerUp.initialize({
             'attachment-sections': async (t, options): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
                 return (await Promise.all([
+                    FacebookAttachmentSection,
                     TwitterAttachmentSection,
                     CanvaAttachmentSection,
                 ].map((x) => x(t, options)))).flat()
