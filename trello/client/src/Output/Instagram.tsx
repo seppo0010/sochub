@@ -15,7 +15,7 @@ export const Preview = ({ input: { code, tags } }: { input: { code: string, tags
         const card = await t.card('attachments')
         const attachments = card.attachments.filter((attachment) => {
             return (attachment.name === 'instagram' &&
-                    attachment.url.match(/^https:\/\/www.canva.com\/design\/[A-Za-z0-9]+\/view$/))
+                    attachment.url.match(/^https:\/\/www.canva.com\/design\/[A-Za-z0-9_]+\/view$/))
         })
         if (attachments[0]) {
             setCanvaURL(attachments[0].url)
