@@ -4,7 +4,7 @@ export const AttachmentSection = async (t: Trello.PowerUp.IFrame, options: {
     entries: Trello.PowerUp.Attachment[];
 }): Promise<Trello.PowerUp.LazyAttachmentSection[]> => {
     return options.entries.filter(function (attachment) {
-        return !!attachment.url.match(/^https:\/\/www.canva.com\/design\/[A-Za-z0-9]+\/view$/)
+        return !!attachment.url.match(/^https:\/\/www.canva.com\/design\/[A-Za-z0-9_-]+\/view$/)
     }).map((attachment) => {
         return {
             id: attachment.url,
