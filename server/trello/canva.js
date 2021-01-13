@@ -93,16 +93,6 @@ module.exports = function (app) {
                 `?state=${request.query.state}%26user=${request.query.user}` +
                 '')
     })
-    app.post('/trello/input-canva/configuration', async (request, response) => {
-        if (!isValidPostRequest(request)) {
-          response.sendStatus(401);
-          return;
-        }
-        response.json({
-            "type": "ERROR",
-            "errorCode": "CONFIGURATION_REQUIRED"
-        })
-    })
 
     const getUserToken = async (user) => {
         const stmt = db.prepare("SELECT token FROM users_token WHERE user = ? LIMIT 1");
@@ -113,6 +103,30 @@ module.exports = function (app) {
         stmt.finalize();
         return obj && obj.token
     }
+    app.post('/trello/input-canva/configuration', async (request, response) => {
+        if (!isValidPostRequest(request)) {
+          response.sendStatus(401);
+          return;
+        }
+        const token = await getUserToken(request.body.user)
+
+        const Trello = new TrelloNodeAPI();
+        Trello.setApiKey(process.env.TRELLO_API_KEY);
+        Trello.setOauthToken(token);
+
+        try {
+            await Trello.member.searchBoards('me')
+            response.json({
+                "type": "SUCCESS",
+                "labels": ["PUBLISH"]
+            })
+        } catch (e) {
+            response.json({
+                "type": "ERROR",
+                "errorCode": "CONFIGURATION_REQUIRED"
+            })
+        }
+    })
     app.post('/trello/input-canva/publish/resources/find', async (request, response) => {
         if (!isValidPostRequest(request)) {
           response.sendStatus(401);
