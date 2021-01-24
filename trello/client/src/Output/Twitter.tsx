@@ -20,6 +20,7 @@ declare interface User {
     name: string;
     screen_name: string;
     profile_image_url: string;
+    list: undefined | string;
 }
 
 const TWEET_URL_REGEX = /^https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/([0-9]+)$/
@@ -61,7 +62,10 @@ const getTweetsFromCode = (code: string) => {
 }
 
 export const twitterPublishItems = async (t: Trello.PowerUp.IFrame) => {
-    return Object.values(await listUsers(t)).map((u) => {
+    const list = (await t.card('idList')).idList
+    return Object.values(await listUsers(t)).filter((u) => {
+        return !u.list || u.list === list;
+    }).map((u) => {
         return {
             text: `Twitter ${u.screen_name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
@@ -154,10 +158,24 @@ const getPreviewAccount = async (): Promise<User | undefined> => {
         return JSON.parse(data)
     }
 }
+const setUserList = async (u: User, list: string) => {
+    const t = window.TrelloPowerUp.iframe();
+    const users = await listUsers(t)
+    const user = users[u.id_str]
+    if (user) {
+        user.list = list
+        await t.set('board', 'shared', 'Twitter_users', JSON.stringify(users))
+    }
+}
 
 export const Settings = () => {
     const [users, setUsers] = useState<{[id: string]: User}>({});
     const [previewAccount, setPreviewAccount] = useState<string>('');
+    const [lists, setLists] = useState<{id: string, name: string}[]>([])
+    useState(async () => {
+        const t = window.TrelloPowerUp.iframe();
+        setLists(await t.lists('id', 'name'))
+    })
     useState(async () => {
         const pAccount = await getPreviewAccount()
         if (pAccount) {
@@ -180,6 +198,16 @@ export const Settings = () => {
                 <button onClick={async () => {
                     setUsers(await removeUser(u))
                 }}>Remove account</button>
+                Show in list:
+                <select onChange={async (e) => {
+                    const _users = JSON.parse(JSON.stringify(users))
+                    _users[u.id_str].list = e.target.value
+                    setUsers(_users)
+                    await setUserList(u, e.target.value);
+                }} value={u.list}>
+                    <option value="">All</option>
+                    {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
             </p>
         ))}
         <p>

@@ -65,7 +65,11 @@ const getPreviewAccount = async (): Promise<Account | undefined> => {
 }
 
 export const publishItems = async (t: Trello.PowerUp.IFrame) => {
-    const pages = await fetchPages(t)
+    const [pages, pagesList, list] = await Promise.all([
+        fetchPages(t),
+        getPagesList(t),
+        t.card('idList'),
+    ])
     if (!pages) {
         const user = await loadUser(t)
         if (!user) {
@@ -81,7 +85,9 @@ export const publishItems = async (t: Trello.PowerUp.IFrame) => {
             },
         }]
     }
-    return pages.map((p) => {
+    return pages.filter((p) => {
+        return !pagesList[p.id] || pagesList[p.id] === list.idList
+    }).map((p) => {
         return {
             text: `Facebook ${p.name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
@@ -136,10 +142,33 @@ export const publishItems = async (t: Trello.PowerUp.IFrame) => {
     })
 }
 
+const getPagesList = async (t?: Trello.PowerUp.IFrame) => {
+    t = t || window.TrelloPowerUp.iframe();
+    return JSON.parse(await t.get('board', 'shared', 'Facebook_pagesList') || '{}')
+}
+
+const setPageList = async (id: string, list: string) => {
+    const t = window.TrelloPowerUp.iframe();
+    const pagesList = await getPagesList()
+    pagesList[id] = list
+    await t.set('board', 'shared', 'Facebook_pagesList', JSON.stringify(pagesList))
+    return pagesList
+}
+
 export const Settings = () => {
     const [loggedIn, setLoggedIn] = useState(false)
     const [accounts, setAccounts] = useState<{id: string, name: string, access_token: string}[]>([]);
     const [previewAccount, setPreviewAccount] = useState<string>('');
+    const [lists, setLists] = useState<{id: string, name: string}[]>([])
+    const [pagesList, setPagesList] = useState<{[key: string]: string}>({});
+    useState(async () => {
+        setPagesList(await getPagesList())
+    })
+
+    useState(async () => {
+        const t = window.TrelloPowerUp.iframe();
+        setLists(await t.lists('id', 'name'))
+    })
 
     useState(async () => {
         const pAccount = await getPreviewAccount()
@@ -183,6 +212,13 @@ export const Settings = () => {
                             setPreviewAccount(a.id)
                             updatePreviewAccount(a)
                         }}>Set as preview account</button>}
+                        Show in list:
+                        <select onChange={async (e) => {
+                            setPagesList(await setPageList(a.id, e.target.value))
+                        }} value={pagesList[a.id] || ''}>
+                            <option value="">All</option>
+                            {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                        </select>
                     </li>
                 ))}
             </ul>)}

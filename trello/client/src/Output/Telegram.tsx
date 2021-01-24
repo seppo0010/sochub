@@ -8,6 +8,7 @@ declare interface TelegramBotChannel {
     botFirstName: string;
     botImageURL: string | null;
     channel: string;
+    list: undefined | string;
 }
 
 const saveTelegramBotChannel = async (tbc: TelegramBotChannel, token: string) => {
@@ -77,7 +78,10 @@ const getPreviewAccount = async (): Promise<TelegramBotChannel | undefined> => {
     }
 }
 export const publishItems = async (t: Trello.PowerUp.IFrame) => {
-    return Object.values(await listTelegramBotChannels(t)).map((b) => {
+    const list = (await t.card('idList')).idList
+    return Object.values(await listTelegramBotChannels(t)).filter((b) => {
+        return !b.list || b.list === list;
+    }).map((b) => {
         return {
             text: `Telegram ${b.botFirstName} - ${b.channel}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
@@ -132,12 +136,27 @@ export const publishItems = async (t: Trello.PowerUp.IFrame) => {
     })
 }
 
+const setTelegramBotChannelList = async (u: TelegramBotChannel, list: string) => {
+    const t = window.TrelloPowerUp.iframe();
+    const telegramBotChannels = await listTelegramBotChannels(t)
+    const telegramBotChannel = telegramBotChannels[u.id]
+    if (telegramBotChannel) {
+        telegramBotChannel.list = list
+        await t.set('board', 'shared', 'Telegram_telegramBotChannels', JSON.stringify(telegramBotChannels))
+    }
+}
+
 export const Settings = () => {
     const [telegramBotChannels, setTelegramBotChannels] = useState<{[id: string]: TelegramBotChannel}>({});
     const [inputBotToken, setInputBotToken] = useState('');
     const [inputChannel, setInputChannel] = useState('');
     const [previewAccount, setPreviewAccount] = useState<string>('');
     const [error, setError] = useState('')
+    const [lists, setLists] = useState<{id: string, name: string}[]>([])
+    useState(async () => {
+        const t = window.TrelloPowerUp.iframe();
+        setLists(await t.lists('id', 'name'))
+    })
     useState(async () => setTelegramBotChannels(await listTelegramBotChannels()))
     const addBot = async () => {
         try {
@@ -170,18 +189,29 @@ export const Settings = () => {
         {error && <p className="error" style={{color: 'red'}}>{error}</p>}
         {Object.values(telegramBotChannels).map((b: TelegramBotChannel) => (
             <p key={b.id}>
-            Telegram {b.botFirstName} - {b.channel}
-            {previewAccount === b.id && <button onClick={async () => {
-                setPreviewAccount('')
-                updatePreviewAccount()
-            }}>Unset as preview account</button>}
-            {previewAccount !== b.id && <button onClick={async () => {
-                setPreviewAccount(b.id)
-                updatePreviewAccount(b)
-            }}>Set as preview account</button>}
-            <button onClick={async () => {
-                setTelegramBotChannels(await removeTelegramBotChannel(b))
-            }}>Remove account</button></p>
+                Telegram {b.botFirstName} - {b.channel}
+                {previewAccount === b.id && <button onClick={async () => {
+                    setPreviewAccount('')
+                    updatePreviewAccount()
+                }}>Unset as preview account</button>}
+                {previewAccount !== b.id && <button onClick={async () => {
+                    setPreviewAccount(b.id)
+                    updatePreviewAccount(b)
+                }}>Set as preview account</button>}
+                <button onClick={async () => {
+                    setTelegramBotChannels(await removeTelegramBotChannel(b))
+                }}>Remove account</button>
+                Show in list:
+                <select onChange={async (e) => {
+                    const _telegramBotChannels = JSON.parse(JSON.stringify(telegramBotChannels))
+                    _telegramBotChannels[b.id].list = e.target.value
+                    setTelegramBotChannels(_telegramBotChannels)
+                    await setTelegramBotChannelList(b, e.target.value);
+                }} value={b.list}>
+                    <option value="">All</option>
+                    {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+            </p>
         ))}
         <p>
             Telegram bot token
@@ -201,6 +231,7 @@ export const Preview = ({ input: { code } }: { input: { code: string } }) => {
         botFirstName: 'myBot',
         botImageURL: process.env.REACT_APP_BASE_URL + '/telegram_default.png',
         channel: 'mychannel',
+        list: undefined,
     })
     useState(async () => {
         const u = await getPreviewAccount();

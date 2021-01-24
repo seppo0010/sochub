@@ -6,6 +6,7 @@ import './Medium.css'
 declare interface MediumBlog {
     id: string;
     name: string;
+    list: undefined | string;
 }
 
 const saveMediumBlog = async (mediumBlog: MediumBlog, token: string) => {
@@ -32,7 +33,10 @@ const listMediumBlogs = async (t?: Trello.PowerUp.IFrame): Promise<{[id: string]
 }
 
 export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
-    return Object.values(await listMediumBlogs(t)).map((m) => {
+    const list = (await t.card('idList')).idList
+    return Object.values(await listMediumBlogs(t)).filter((m) => {
+        return !m.list || m.list === list;
+    }).map((m) => {
         return {
             text: `Medium ${m.name}`,
             callback: async (t: Trello.PowerUp.IFrame) => {
@@ -92,10 +96,25 @@ export const mediumPublishItems = async (t: Trello.PowerUp.IFrame) => {
     })
 }
 
+const setMediumBlogList = async (m: MediumBlog, list: string) => {
+    const t = window.TrelloPowerUp.iframe();
+    const mediumBlogs = await listMediumBlogs(t)
+    const mediumBlog = mediumBlogs[m.id]
+    if (mediumBlog) {
+        mediumBlog.list = list
+        await t.set('board', 'shared', 'Medium_mediumBlogs', JSON.stringify(mediumBlogs))
+    }
+}
+
 export const Settings = () => {
     const [mediumBlogs, setMediumBlogs] = useState<{[id: string]: MediumBlog}>({});
     const [input, setInput] = useState('');
     const [error, setError] = useState('')
+    const [lists, setLists] = useState<{id: string, name: string}[]>([])
+    useState(async () => {
+        const t = window.TrelloPowerUp.iframe();
+        setLists(await t.lists('id', 'name'))
+    })
     useState(async () => setMediumBlogs(await listMediumBlogs()))
     const addBlog = async () => {
         const token = input;
@@ -121,9 +140,22 @@ export const Settings = () => {
     return (<>
         {error && <p className="error" style={{color: 'red'}}>{error}</p>}
         {Object.values(mediumBlogs).map((m: MediumBlog) => (
-            <p key={m.id}>Medium {m.name}<button onClick={async () => {
-                setMediumBlogs(await removeMediumBlog(m))
-            }}>Remove account</button></p>
+            <p key={m.id}>
+                Medium {m.name}
+                <button onClick={async () => {
+                    setMediumBlogs(await removeMediumBlog(m))
+                }}>Remove account</button>
+                Show in list:
+                <select onChange={async (e) => {
+                    const _mediumBlogs = JSON.parse(JSON.stringify(mediumBlogs))
+                    _mediumBlogs[m.id].list = e.target.value
+                    setMediumBlogs(_mediumBlogs)
+                    await setMediumBlogList(m, e.target.value);
+                }} value={m.list}>
+                    <option value="">All</option>
+                    {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+            </p>
         ))}
         <p>
             Medium integration token
