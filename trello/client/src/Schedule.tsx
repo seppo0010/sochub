@@ -26,7 +26,7 @@ const Schedule = () => {
             const colors = window.TrelloPowerUp.util.colors;
             setEvents(cards.filter((c) => !!c.due).map((c) => {
                 return {
-                    backgroundColor: colors.getHexString(c.labels.length && c.labels[0] ? c.labels[0].color : 'blue'),
+                    backgroundColor: colors.getHexString(c.labels.length && c.labels[0].color ? c.labels[0].color : 'blue'),
                     title: (c.name || '') + (listsMap[c.idList] ? ` [${listsMap[c.idList]}]` : ''),
                     start: (c.due || '').substr(0, 10),
                     end: (c.due || '').substr(0, 10),
